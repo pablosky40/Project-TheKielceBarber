@@ -24,7 +24,7 @@ public class DataLoader implements CommandLineRunner {
         if (serviceRepository.count() == 0) {
         	serviceRepository.save(new Service(null, "Haircut", "Classic style", 15.0, 30));
         	serviceRepository.save(new Service(null, "Beard Trim", "Beard grooming", 10.0, 20));
-            System.out.println(" Servicios iniciales cargados.");
+            System.out.println(" Servicios iniciales cargados..");
         }
 
         // Cargar Productos si la tabla está vacía
