@@ -3,9 +3,11 @@ package com.thekielcebarber.barbershop.config;
 import com.thekielcebarber.barbershop.model.Product;
 import com.thekielcebarber.barbershop.model.Review;
 import com.thekielcebarber.barbershop.model.Service;
+import com.thekielcebarber.barbershop.model.Appointment;
 import com.thekielcebarber.barbershop.repository.ProductRepository;
 import com.thekielcebarber.barbershop.repository.ReviewRepository;
 import com.thekielcebarber.barbershop.repository.ServiceRepository;
+import com.thekielcebarber.barbershop.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -22,6 +24,9 @@ public class DataLoader implements CommandLineRunner {
 
     @Autowired
     private ReviewRepository reviewRepository;
+    
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -48,6 +53,18 @@ public class DataLoader implements CommandLineRunner {
             reviewRepository.save(new Review(null, 4, "Great products, the matte wax smells amazing.", LocalDate.now()));
             reviewRepository.save(new Review(null, 5, "Professional staff and very clean shop.", LocalDate.now().minusDays(2)));
             System.out.println(" Reseñas iniciales cargadas.");
+        }
+     // Importante: Asegúrate de tener inyectado el appointmentRepository arriba con @Autowired
+
+        if (appointmentRepository.count() == 0) {
+            // Creamos una cita de ejemplo para hoy
+            Appointment testApp = new Appointment();
+            testApp.setDateTime(java.time.LocalDateTime.now());
+            testApp.setStatus("CONFIRMED");
+            testApp.setPaymentStatus("PENDING"); // Requisito de pago offline
+            
+            appointmentRepository.save(testApp);
+            System.out.println("✅ Cita de prueba cargada.");
         }
     }
 }
