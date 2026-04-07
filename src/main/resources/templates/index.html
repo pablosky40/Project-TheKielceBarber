@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>The Kielce Barber | Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; }
+        .hero-section { 
+            height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+            url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1000');
+            background-size: cover; background-position: center; 
+        }
+        .btn-gold { background-color: #d4af37; color: black; font-weight: bold; border: none; padding: 15px 40px; border-radius: 50px; transition: 0.3s; }
+        .btn-gold:hover { background-color: #f1c40f; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <div class="hero-section">
+        <div>
+            <h1 class="display-1 fw-bold text-uppercase">The Kielce Barber</h1>
+            <p class="lead mb-5">Estilo clásico, técnica moderna. Reserva tu experiencia premium.</p>
+            
+            <a th:href="@{/oauth2/authorization/google}" class="btn btn-gold btn-lg shadow-lg">
+                RESERVAR CON GOOGLE
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
