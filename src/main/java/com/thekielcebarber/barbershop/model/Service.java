@@ -1,30 +1,40 @@
 package com.thekielcebarber.barbershop.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "services")
-@Getter 
-@Setter 
-@NoArgsConstructor // <--- ESTE ES VITAL PARA JPA
-
 public class Service {
-	// Borra @AllArgsConstructor y pon esto a mano dentro de la clase Service:
-	public Service(Long id, String name, String description, BigDecimal price, Integer duration) {
-	    this.id = id;
-	    this.name = name;
-	    this.description = description;
-	    this.price = price;
-	    this.durationMinutes = duration;
-	}
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
     private String description;
-    private BigDecimal price;
+    private Double price;
     private Integer durationMinutes;
+
+    // Constructor vacío (Obligatorio)
+    public Service() {}
+
+    // Constructor con TODO (Este es el que necesita el DataLoader)
+    public Service(Long id, String name, String description, Double price, Integer durationMinutes) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.durationMinutes = durationMinutes;
+    }
+
+    // Getters y Setters (Necesarios para que Spring funcione)
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+    public Integer getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
 }
