@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation | The Kielce Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #121212; 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0;
+        }
+        .confirm-card { 
+            background: #1e1e1e; 
+            border: 1px solid #d4af37; 
+            border-radius: 20px; 
+            padding: 40px; 
+            text-align: center; 
+            max-width: 500px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .icon-check { 
+            font-size: 5rem; 
+            color: #d4af37; 
+            margin-bottom: 20px; 
+        }
+        .details { 
+            background: #252525; 
+            border-radius: 10px; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-left: 4px solid #d4af37; 
+            text-align: left; 
+        }
+        .btn-gold { 
+            background-color: #d4af37; 
+            color: black; 
+            font-weight: bold; 
+            border-radius: 50px; 
+            padding: 12px 30px; 
+            text-decoration: none; 
+            display: block; 
+            transition: 0.3s;
+        }
+        .btn-gold:hover {
+            background-color: #f1c40f;
+            transform: translateY(-2px);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="confirm-card">
+        <div class="icon-check">✅</div>
+        <h2 class="fw-bold">RESERVATION RECEIVED</h2>
+        <p class="text-muted">Your appointment has been successfully pre-booked.</p>
+        
+        <div class="details">
+            <p class="mb-1"><strong>Service:</strong> <span th:text="${service}">Cut</span></p>
+            <p class="mb-1"><strong>Barber:</strong> <span th:text="${barber}">Luca</span></p>
+            <p class="mb-0"><strong>Date:</strong> <span th:text="${date}">Date</span> at <span th:text="${time}">Time</span></p>
+        </div>
+        
+        <p class="small mb-4">To secure your spot, please proceed with the payment.</p>
+        
+        <a th:href="@{/appointments/checkout(service=${service}, barber=${barber}, date=${date}, time=${time})}" 
+           class="btn-gold">
+           PROCEED TO PAYMENT (🛒)
+        </a>
+    </div>
+</body>
+</html>

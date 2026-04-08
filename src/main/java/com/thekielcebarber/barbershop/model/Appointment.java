@@ -1,45 +1,46 @@
 package com.thekielcebarber.barbershop.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
-@Table(name = "appointments")
 public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Campos principales de la cita
-    private LocalDateTime dateTime;
-    private String status;         // Ejemplo: "CONFIRMED", "CANCELLED"
-    private String paymentStatus;  // Ejemplo: "PAID", "PENDING" (Requisito de pago offline)
+    private String service;
+    private String barber;
+    private String date;
+    private String time;
+    private String paymentStatus;
+    private String userEmail;
 
-    // Si en el futuro quieres filtrar por cliente/barbero, 
-    // añade estos campos para que el Repository no de error:
-    private Long clientId;
-    private Long barberId;
-
-    // Constructor vacío (Obligatorio para JPA/Hibernate)
+    // Constructor vacío (Obligatorio para JPA)
     public Appointment() {}
 
-    // Getters y Setters
+    // Getters y Setters (Las "llaves" que te faltan)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public LocalDateTime getDateTime() { return dateTime; }
-    public void setDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
+    public String getService() { return service; }
+    public void setService(String service) { this.service = service; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getBarber() { return barber; }
+    public void setBarber(String barber) { this.barber = barber; }
+
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+
+    public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
 
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
 
-    public Long getClientId() { return clientId; }
-    public void setClientId(Long clientId) { this.clientId = clientId; }
-
-    public Long getBarberId() { return barberId; }
-    public void setBarberId(Long barberId) { this.barberId = barberId; }
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
 }

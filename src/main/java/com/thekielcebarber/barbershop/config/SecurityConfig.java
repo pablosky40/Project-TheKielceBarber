@@ -21,8 +21,10 @@ public class SecurityConfig {
                 // El resto también lo permitimos por ahora para que no te bloquee
                 .anyRequest().permitAll()
             )
-            .oauth2Login(oauth -> oauth
-                .defaultSuccessUrl("/", true)
+         // Dentro de securityFilterChain cambia la línea:
+            .oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("/dashboard", true) // ¡Ahora a la pantalla de opciones!
+            
             )
             // Esto es necesario para que la consola H2 funcione
             .csrf(csrf -> csrf.disable())

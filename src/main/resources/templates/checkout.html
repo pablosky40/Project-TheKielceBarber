@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout | The Kielce Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-hover: #f1c40f;
+            --dark-bg: #121212;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+        }
+
+        .bg-page {
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), 
+                        url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1600');
+            background-size: cover;
+            background-position: center;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .checkout-container {
+            background-color: rgba(30, 30, 30, 0.9);
+            padding: 40px;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2); 
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .form-title {
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--gold);
+            margin-bottom: 35px;
+        }
+
+        .premium-card {
+            background: linear-gradient(45deg, #d4af37, #f1c40f);
+            border-radius: 15px;
+            padding: 25px;
+            color: black;
+            margin-bottom: 35px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            font-family: 'Courier New', monospace;
+        }
+
+        .card-header, .card-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .card-number-display {
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 15px;
+            transition: 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .btn-pay {
+            background-color: var(--gold);
+            color: black;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            padding: 18px;
+            border: none;
+            width: 100%;
+            margin-top: 30px;
+            transition: 0.3s;
+        }
+
+        .btn-pay:hover {
+            background-color: var(--gold-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-page">
+        <div class="checkout-container shadow-lg">
+            
+            <h3 class="form-title">Secure Checkout</h3>
+            
+            <div class="premium-card">
+                <div class="card-header">
+                    <span>PREMIUM CLIENT</span>
+                    <span>VISA</span>
+                </div>
+                <div class="card-number-display">**** **** **** 4242</div>
+                <div class="card-footer">
+                    <span>EXP: 12/28</span>
+                    <span>CVV: ***</span>
+                </div>
+            </div>
+
+            <form th:action="@{/appointments/payment-success}" method="get">
+                
+                <input type="hidden" name="service" th:value="${service}">
+                <input type="hidden" name="barber" th:value="${barber}">
+                <input type="hidden" name="date" th:value="${date}">
+                <input type="hidden" name="time" th:value="${time}">
+
+                <div class="mb-4">
+                    <label class="form-label">Cardholder Name</label>
+                    <input type="text" class="form-control" placeholder="PABLO SANTILLANA" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-8 mb-4">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" name="cardNumber" class="form-control" placeholder="**** **** **** 0000" required>
+                    </div>
+                    <div class="col-4 mb-4">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-control" placeholder="123" maxlength="3" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label">Expiration (MM/YY)</label>
+                        <input type="text" class="form-control" placeholder="12/28" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay">CONFIRM & PAY</button>
+            </form>
+            
+            <p class="text-center mt-3 text-muted small">
+                🔒 Hint: Cards ending in <strong>0000</strong> will be declined.
+            </p>
+            
+        </div>
+    </div>
+
+</body>
+</html>
