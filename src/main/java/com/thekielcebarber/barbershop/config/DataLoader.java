@@ -59,12 +59,33 @@ public class DataLoader implements CommandLineRunner {
         if (appointmentRepository.count() == 0) {
             // Creamos una cita de ejemplo para hoy
             Appointment testApp = new Appointment();
-            testApp.setDateTime(java.time.LocalDateTime.now());
-            testApp.setStatus("CONFIRMED");
-            testApp.setPaymentStatus("PENDING"); // Requisito de pago offline
             
+            // CAMBIO: Ahora usamos setDate y setTime por separado (como en el formulario)
+            testApp.setDate("2026-04-10");
+            testApp.setTime("11:00 AM");
+            
+            // CAMBIO: El campo "Status" ahora es para el pago
+            testApp.setPaymentStatus("PENDING");
+            
+            // Añadimos datos que ahora son obligatorios
+            testApp.setBarber("Luca Scissorhands");
+            testApp.setService("Classic Cut");
+            testApp.setUserEmail("test@example.com");
+
             appointmentRepository.save(testApp);
-            System.out.println("✅ Cita de prueba cargada.");
+            System.out.println("✅ Test appointment loaded.");
         }
+     // Busca donde creas las citas y añade esto debajo:
+        Product p1 = new Product();
+        p1.setName("Cera Mate Premium");
+        p1.setPrice(15.50);
+        productRepository.save(p1);
+
+        Product p2 = new Product();
+        p2.setName("Aceite para Barba");
+        p2.setPrice(12.00);
+        productRepository.save(p2);
+
+        System.out.println("✅ Productos de prueba cargados.");
     }
 }
