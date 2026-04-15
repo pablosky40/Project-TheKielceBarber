@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel | The Kielce Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #0f0f0f; color: white; font-family: sans-serif; }
+        .text-gold { color: #d4af37; }
+        .sidebar { background: #1a1a1a; min-height: 100vh; border-right: 1px solid #d4af37; }
+        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid #d4af37; border-radius: 15px; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2 sidebar p-4 text-center">
+                <h3 class="text-gold fw-bold">ADMIN</h3>
+                <hr class="border-secondary">
+                <form th:action="@{/logout}" method="post"><button class="btn btn-danger btn-sm w-100">LOGOUT</button></form>
+            </div>
+            <div class="col-md-10 p-5">
+                <h1 class="mb-4">Barber Master: <span class="text-gold" th:text="${userName}">Pablo</span></h1>
+                
+                <div class="row mb-5">
+                    <div class="col-md-4"><div class="stat-card"><h5>Total Appointments</h5><h2 class="text-gold" th:text="${totalCitas}">0</h2></div></div>
+                </div>
+
+                <div class="bg-dark p-4 rounded-4">
+                    <h4 class="text-gold mb-4">GLOBAL SCHEDULE</h4>
+                    <table class="table table-dark table-hover">
+                        <thead><tr><th>Client</th><th>Date</th><th>Barber</th><th>Service</th><th>Manage</th></tr></thead>
+                        <tbody>
+                            <tr th:each="appt : ${appointments}">
+                                <td th:text="${appt.user?.name ?: 'Guest'}">Client</td>
+                                <td th:text="${appt.date + ' ' + appt.time}">Date</td>
+                                <td th:text="${appt.barber}">Barber</td>
+                                <td th:text="${appt.service}">Service</td>
+                                <td>
+                                    <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post">
+                                        <button class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

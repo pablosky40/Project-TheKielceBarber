@@ -21,7 +21,6 @@ public class AppointmentService {
     public void createAndNotifyAppointment(Appointment appt) {
         
         // VALIDACIÓN: ¿Ya existe este barbero a esta hora este día?
-        // Nota: Asegúrate de que los nombres coincidan con tu modelo (barber o barberName)
         boolean exists = appointmentRepository.existsByBarberAndDateAndTime(
             appt.getBarber(), 
             appt.getDate(), 
@@ -36,11 +35,16 @@ public class AppointmentService {
         // Si no existe, guardamos la cita
         appointmentRepository.save(appt);
         
-        // Aquí es donde RabbitMQ enviaría la notificación (si lo tienes configurado)
-        System.out.println("LOG: Cita guardada con éxito para: " + appt.getUserEmail());
+        // --- CORRECCIÓN AQUÍ ---
+        // Accedemos al email navegando por el objeto User: appt.getUser().getEmail()
+        if (appt.getUser() != null) {
+            System.out.println("LOG: Cita guardada con éxito para: " + appt.getUser().getEmail());
+        } else {
+            System.out.println("LOG: Cita guardada con éxito para un usuario invitado.");
+        }
     }
 
-    // 3. Aprobar pago offline (Si lo usas en tu flujo)
+    // 3. Aprobar pago offline
     public void approveOfflinePayment(Long id) {
         appointmentRepository.findById(id).ifPresent(appt -> {
             appt.setPaymentStatus("PAID");
@@ -55,7 +59,8 @@ public class AppointmentService {
             System.out.println("LOG: Cita ID " + id + " cancelada correctamente.");
         }
     }
- // Añade esto dentro de tu AppointmentService.java
+
+    // 5. Método de apoyo para el Controller
     public boolean existsByBarberAndDateAndTime(String barber, String date, String time) {
         return appointmentRepository.existsByBarberAndDateAndTime(barber, date, time);
     }
