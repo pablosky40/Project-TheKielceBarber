@@ -23,12 +23,16 @@
         /* Modal Style */
         .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 25px; color: white; }
         .btn-confirm-delete { background: #ff4d4d; color: white; border-radius: 12px; font-weight: 700; border: none; padding: 10px 25px; }
+        
+        .form-select, .form-control { background-color: #111 !important; color: white !important; border-color: #333 !important; }
+        .form-select:focus, .form-control:focus { border-color: var(--gold) !important; box-shadow: none; }
     </style>
 </head>
 <body>
     <div class="container py-5">
         <div class="text-center mb-5">
             <h1 class="display-4 fw-bold" style="color: var(--gold);">COMMUNITY REVIEWS</h1>
+            <p class="text-white-50">Real experiences from our premium grooming club</p>
         </div>
 
         <div class="row g-5">
@@ -54,6 +58,11 @@
                     </div>
                     <p class="text-white-50 mt-2" th:text="${review.comment}">Comment...</p>
                 </div>
+                
+                <div th:if="${#lists.isEmpty(reviews)}" class="text-center py-5">
+                    <i class="bi bi-chat-dots fs-1 text-muted"></i>
+                    <p class="mt-3 text-muted">No reviews yet. Be the first to share your style!</p>
+                </div>
             </div>
 
             <div class="col-lg-5">
@@ -66,19 +75,25 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-gold">RATING</label>
-                            <select name="rating" class="form-select bg-dark text-white border-secondary">
+                            <select name="rating" class="form-select" required>
                                 <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
                                 <option value="4">⭐⭐⭐⭐ Very Good</option>
                                 <option value="3">⭐⭐⭐ Good</option>
+                                <option value="2">⭐⭐ Fair</option>
+                                <option value="1">⭐ Poor</option>
                             </select>
                         </div>
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-gold">YOUR EXPERIENCE</label>
-                            <textarea name="comment" class="form-control bg-dark text-white border-secondary" rows="4" required></textarea>
+                            <textarea name="comment" class="form-control" rows="4" placeholder="Tell the community about your haircut..." required></textarea>
                         </div>
                         <button type="submit" class="btn btn-gold w-100 py-3">POST REVIEW ✨</button>
                     </form>
-                    <div class="text-center mt-3"><a th:href="@{/dashboard}" class="text-white-50 small text-decoration-none">← Back to Dashboard</a></div>
+                    <div class="text-center mt-4">
+                        <a th:href="@{/dashboard}" class="text-white-50 small text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,15 +102,26 @@
     <div class="modal fade" id="editReviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header border-0"><h5 class="modal-title fw-bold text-gold">EDIT REVIEW</h5></div>
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-gold">EDIT YOUR REVIEW</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <form id="editReviewForm" method="post">
                     <div class="modal-body">
-                        <select id="editRating" name="rating" class="form-select mb-3"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option></select>
+                        <label class="form-label small fw-bold text-gold">RATING</label>
+                        <select id="editRating" name="rating" class="form-select mb-3">
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ Very Good</option>
+                            <option value="3">⭐⭐⭐ Good</option>
+                            <option value="2">⭐⭐ Fair</option>
+                            <option value="1">⭐ Poor</option>
+                        </select>
+                        <label class="form-label small fw-bold text-gold">COMMENT</label>
                         <textarea id="editComment" name="comment" class="form-control" rows="4" required></textarea>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="button" class="btn text-white" data-bs-dismiss="modal">CANCEL</button>
-                        <button type="submit" class="btn btn-gold">SAVE CHANGES</button>
+                        <button type="button" class="btn text-white-50" data-bs-dismiss="modal">CANCEL</button>
+                        <button type="submit" class="btn btn-gold px-4">SAVE CHANGES</button>
                     </div>
                 </form>
             </div>
@@ -105,10 +131,14 @@
     <div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center">
-                <div class="modal-header border-0 justify-content-center pt-4"><h5 class="modal-title fw-bold text-danger">DELETE REVIEW</h5></div>
-                <div class="modal-body p-4"><p>Are you sure? This review will be gone forever.</p></div>
+                <div class="modal-header border-0 justify-content-center pt-4">
+                    <h5 class="modal-title fw-bold text-danger">DELETE REVIEW</h5>
+                </div>
+                <div class="modal-body p-4">
+                    <p>Are you sure? This review will be permanently removed from the community wall.</p>
+                </div>
                 <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn text-white" data-bs-dismiss="modal">KEEP IT</button>
+                    <button type="button" class="btn text-white-50 px-4" data-bs-dismiss="modal">KEEP IT</button>
                     <form id="deleteReviewForm" method="post">
                         <button type="submit" class="btn btn-confirm-delete">YES, DELETE</button>
                     </form>

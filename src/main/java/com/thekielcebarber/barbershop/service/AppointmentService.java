@@ -5,6 +5,7 @@ import com.thekielcebarber.barbershop.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.time.LocalDate;
 
 @Service
 public class AppointmentService {
@@ -60,8 +61,9 @@ public class AppointmentService {
         }
     }
 
-    // 5. Método de apoyo para el Controller
-    public boolean existsByBarberAndDateAndTime(String barber, String date, String time) {
-        return appointmentRepository.existsByBarberAndDateAndTime(barber, date, time);
-    }
+ // 5. Método de apoyo para el Controller
+ // CAMBIA 'String date' por 'LocalDate date'
+ public boolean existsByBarberAndDateAndTime(String barber, LocalDate date, String time) {
+     return appointmentRepository.existsByBarberAndDateAndTime(barber, date, time);
+ }
 }

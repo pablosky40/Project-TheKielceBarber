@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Grooming Catalog | The Kielce Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); }
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.92)), url('/images/fondo.jpg');
+            background-size: cover; background-attachment: fixed; color: white; 
+            font-family: 'Montserrat', sans-serif; min-height: 100vh;
+        }
+        .catalog-header { padding: 60px 0; text-align: center; }
+        .product-card { 
+            background: var(--glass); 
+            border: 1px solid rgba(212,175,55,0.1);
+            border-radius: 25px; 
+            padding: 20px; 
+            height: 100%;
+            transition: 0.4s;
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:hover { 
+            border-color: var(--gold); 
+            transform: translateY(-10px);
+            background: rgba(212,175,55,0.08);
+        }
+        .img-container {
+            width: 100%; height: 220px; overflow: hidden;
+            border-radius: 18px; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.1); }
+        .brand-badge { font-size: 0.7rem; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+        .price-tag { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+        .exclusive-badge {
+            background: rgba(212,175,55,0.1);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            font-size: 0.8rem;
+            padding: 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .back-link { color: var(--gold); text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div class="container pb-5">
+        <div class="catalog-header">
+            <a th:href="@{/dashboard}" class="back-link mb-3 d-inline-block">
+                <i class="bi bi-arrow-left me-2"></i>BACK TO DASHBOARD
+            </a>
+            <h1 class="display-4 fw-bold">PREMIUM <span style="color: var(--gold);">COLLECTION</span></h1>
+            <p class="text-white-50 lead">Discover our professional products. Available exclusively at our shop.</p>
+        </div>
+
+        <div class="row g-4">
+            <div th:each="product : ${products}" class="col-md-6 col-lg-4">
+                <div class="product-card">
+                    <div class="img-container">
+                        <img th:src="${product.imageUrl}" class="product-img" alt="Product">
+                    </div>
+
+                    <div class="flex-grow-1">
+                        <span class="brand-badge" th:text="${product.brand}">Brand</span>
+                        <h3 class="h5 fw-bold text-white mb-2" th:text="${product.name}">Product Name</h3>
+                        <p class="text-white-50 small mb-4" th:text="${product.description}">Description</p>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="price-tag" th:text="${product.price + ' €'}">0.00 €</span>
+                            <span class="text-white-50 small" th:text="${product.stock + ' in stock'}">Stock</span>
+                        </div>
+                        <div class="exclusive-badge text-center">
+                            <i class="bi bi-shop me-2"></i>AVAILABLE IN STORE
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-center p-4" style="background: var(--glass); border-radius: 20px;">
+            <p class="mb-0 text-white-50">
+                <i class="bi bi-info-circle me-2 text-gold"></i>
+                These products are used by our masters during your service. 
+                <strong>Ask your barber to get yours today!</strong>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

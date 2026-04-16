@@ -28,20 +28,47 @@ public class DashboardController {
         if (principal == null) return "redirect:/";
 
         String email = principal.getAttribute("email");
-        User user = userRepository.findByEmail(email).orElseThrow(); // Ya sabemos que existe
+        String name = principal.getAttribute("name");
+        String photoUrl = principal.getAttribute("picture");
+
+        // 1. Buscamos al usuario o lo creamos si es nuevo
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName(name);
+            newUser.setRole("USER"); // Por defecto todos son clientes
+            return userRepository.save(newUser);
+        });
+
+        // 2. EL FILTRO DE PODER: Solo Pablo y Claudia son BARBER
+        boolean esJefe = email.equalsIgnoreCase("pablosantillana34@gmail.com") || 
+                         email.equalsIgnoreCase("cllope04@ucm.es");
+
+        if (esJefe) {
+            if (!"BARBER".equals(user.getRole())) {
+                user.setRole("BARBER");
+                user = userRepository.save(user);
+            }
+        } else {
+            // Por si acaso el admin "fantasma" logueara, se quedaría como USER
+            if (!"USER".equals(user.getRole())) {
+                user.setRole("USER");
+                user = userRepository.save(user);
+            }
+        }
 
         model.addAttribute("userName", user.getName());
-        model.addAttribute("userPhoto", principal.getAttribute("picture"));
+        model.addAttribute("userPhoto", photoUrl);
 
         if ("BARBER".equals(user.getRole())) {
-            // DATOS PARA EL BARBERO: Todas las citas, estadísticas, etc.
-            model.addAttribute("appointments", appointmentRepository.findAll());
-            model.addAttribute("totalRevenue", appointmentRepository.findAll().size() * 20); // Ejemplo de lógica
-            return "dashboard-admin"; // Carga el HTML de administrador
+            List<Appointment> allAppts = appointmentRepository.findAll();
+            model.addAttribute("appointments", allAppts);
+            model.addAttribute("totalCitas", allAppts.size());
+            model.addAttribute("totalRevenue", allAppts.size() * 20); 
+            return "dashboard-admin"; 
         } else {
-            // DATOS PARA EL CLIENTE: Solo sus citas
             model.addAttribute("appointments", appointmentRepository.findByUser(user));
-            return "dashboard-user"; // Carga el HTML de cliente
+            return "dashboard-user";
         }
     }
-  }
+}
