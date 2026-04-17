@@ -10,4 +10,8 @@ public class HomeController {
     public String index() {
         return "index"; // Esto busca el archivo index.html en templates
     }
+    @GetMapping("/location")
+    public String showLocation() {
+        return "location"; // Esto le dice: "Busca un archivo llamado location.html"
+    }
 }

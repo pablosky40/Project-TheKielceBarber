@@ -15,7 +15,10 @@ public class Review {
     private String comment;
     private LocalDate reviewDate;
     private String author; // Nombre para mostrar rápido
+ // Dentro de tu clase Review.java
+    private String response;
 
+   
     // RELACIÓN: Muchas reseñas para UN usuario
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -36,4 +39,6 @@ public class Review {
     public void setAuthor(String author) { this.author = author; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+    public String getResponse() { return response; }
+    public void setResponse(String response) { this.response = response; }
 }

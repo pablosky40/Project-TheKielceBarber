@@ -2,52 +2,166 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel | The Kielce Barber</title>
+    <title>Barber Master Panel | The Kielce Barber</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f0f0f; color: white; font-family: sans-serif; }
-        .text-gold { color: #d4af37; }
-        .sidebar { background: #1a1a1a; min-height: 100vh; border-right: 1px solid #d4af37; }
-        .stat-card { background: rgba(255,255,255,0.05); border: 1px solid #d4af37; border-radius: 15px; padding: 20px; }
+        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); }
+        
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.95)), url('/images/fondo.jpg') no-repeat center center fixed; 
+            background-size: cover; color: white; 
+            font-family: 'Montserrat', sans-serif; min-height: 100vh; 
+        }
+
+        .navbar { background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid var(--gold); backdrop-filter: blur(10px); }
+        .text-gold { color: var(--gold); }
+        
+        .nav-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
+
+        /* Estilo de Tarjetas de Gestión */
+        .card-admin { 
+            background: var(--glass); 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+            border-radius: 20px; 
+            padding: 40px 20px; 
+            text-align: center; 
+            text-decoration: none; 
+            display: block; 
+            transition: 0.4s; 
+            color: white; 
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-admin:hover { 
+            border-color: var(--gold); 
+            transform: translateY(-10px); 
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+        }
+
+        .icon-box {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--gold);
+        }
+
+        /* Estilos de la tabla global */
+        .admin-table-container { 
+            background: rgba(0, 0, 0, 0.4); 
+            border-radius: 25px; 
+            padding: 35px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            backdrop-filter: blur(15px);
+        }
+
+        .table { --bs-table-bg: transparent; color: white !important; }
+        .table thead th { color: var(--gold); text-transform: uppercase; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
+        .table tbody td { padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+
+        .btn-logout { color: rgba(255,255,255,0.6); font-weight: 600; transition: 0.3s; text-decoration: none; }
+        .btn-logout:hover { color: #ff4d4d; }
+        
+        .badge-admin { background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-2 sidebar p-4 text-center">
-                <h3 class="text-gold fw-bold">ADMIN</h3>
-                <hr class="border-secondary">
-                <form th:action="@{/logout}" method="post"><button class="btn btn-danger btn-sm w-100">LOGOUT</button></form>
-            </div>
-            <div class="col-md-10 p-5">
-                <h1 class="mb-4">Barber Master: <span class="text-gold" th:text="${userName}">Pablo</span></h1>
-                
-                <div class="row mb-5">
-                    <div class="col-md-4"><div class="stat-card"><h5>Total Appointments</h5><h2 class="text-gold" th:text="${totalCitas}">0</h2></div></div>
-                </div>
+    <nav class="navbar navbar-dark p-3 sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand d-flex align-items-center fw-bold text-gold tracking-tight" href="/dashboard-admin">
+                <img th:src="@{/images/barber-logo.jpg}" alt="Logo" class="nav-logo me-3">
+                THE KIELCE BARBER <span class="ms-2 badge bg-dark text-gold border border-gold" style="font-size: 0.6rem;">MASTER PANEL</span>
+            </a>
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-logout border-0 bg-transparent">
+                    <i class="bi bi-box-arrow-right me-2"></i>LOGOUT
+                </button>
+            </form>
+        </div>
+    </nav>
 
-                <div class="bg-dark p-4 rounded-4">
-                    <h4 class="text-gold mb-4">GLOBAL SCHEDULE</h4>
-                    <table class="table table-dark table-hover">
-                        <thead><tr><th>Client</th><th>Date</th><th>Barber</th><th>Service</th><th>Manage</th></tr></thead>
-                        <tbody>
-                            <tr th:each="appt : ${appointments}">
-                                <td th:text="${appt.user?.name ?: 'Guest'}">Client</td>
-                                <td th:text="${appt.date + ' ' + appt.time}">Date</td>
-                                <td th:text="${appt.barber}">Barber</td>
-                                <td th:text="${appt.service}">Service</td>
-                                <td>
-                                    <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post">
-                                        <button class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="container py-5">
+        <div class="mb-5">
+            <h1 class="fw-bold mb-0">Master Barber: <span class="text-gold" th:text="${userName}">Pablo</span></h1>
+            <p class="text-white-50">Manage your business operations and premium services.</p>
+        </div>
+
+        <div class="row g-4 mb-5 text-center">
+            <div class="col-md-4">
+                <a th:href="@{/appointments/admin}" class="card-admin">
+                    <i class="bi bi-calendar3 icon-box"></i>
+                    <h4 class="fw-bold">MANAGE APPOINTMENTS</h4>
+                    <p class="small text-white-50 mb-0">Edit or cancel client bookings</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a th:href="@{/products/admin}" class="card-admin">
+                    <i class="bi bi-bag-plus icon-box"></i>
+                    <h4 class="fw-bold">MANAGE PRODUCTS</h4>
+                    <p class="small text-white-50 mb-0">Update stock and premium catalog</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a th:href="@{/reviews/admin}" class="card-admin">
+                    <i class="bi bi-chat-quote icon-box"></i>
+                    <h4 class="fw-bold">MANAGE REVIEWS</h4>
+                    <p class="small text-white-50 mb-0">Moderate client feedback</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="admin-table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-gold fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2"></i>RECENT ACTIVITY</h3>
+                <span class="text-white-50 small">Total Appointments: <b class="text-gold" th:text="${totalCitas}">0</b></span>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Schedule</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th class="text-end">Manage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="appt : ${appointments}">
+                            <td>
+                                <div class="fw-bold" th:text="${appt.user?.name ?: 'Guest Account'}">Client Name</div>
+                                <div class="small text-white-50" th:text="${appt.user?.email ?: 'No Email'}">email@example.com</div>
+                            </td>
+                            <td>
+                                <div class="text-white" th:text="${appt.date}">2026-04-18</div>
+                                <div class="text-gold fw-bold" th:text="${appt.time}">15:30</div>
+                            </td>
+                            <td>
+                                <span class="badge-admin" th:text="${appt.service}">Haircut Premium</span>
+                            </td>
+                            <td>
+                                <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CONFIRMED</span>
+                            </td>
+                            <td class="text-end">
+                                <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post" style="display:inline;">
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+                                        <i class="bi bi-trash3 me-1"></i> DELETE
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${#lists.isEmpty(appointments)}" class="text-center py-5">
+                <p class="text-white-50">No activity recorded for today.</p>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -23,52 +22,72 @@ public class DashboardController {
     @Autowired
     private UserRepository userRepository;
 
+    // ESTA ES LA RUTA DE ENTRADA (Decide a dónde mandarte)
     @GetMapping("/dashboard")
-    public String dashboard(Model model, @AuthenticationPrincipal OAuth2User principal) {
+    public String dashboard(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return "redirect:/";
 
         String email = principal.getAttribute("email");
-        String name = principal.getAttribute("name");
-        String photoUrl = principal.getAttribute("picture");
+        User user = checkAndUpgradeUser(principal);
 
-        // 1. Buscamos al usuario o lo creamos si es nuevo
+        // Si es jefe, lo mandamos a la URL de admin, si no a la de usuario
+        if ("BARBER".equals(user.getRole())) {
+            return "redirect:/dashboard-admin";
+        }
+        return "redirect:/dashboard-user";
+    }
+
+    // RUTA PARA EL BARBERO (ADMIN) - ¡Ahora sí existe!
+    @GetMapping("/dashboard-admin")
+    public String showAdminDashboard(Model model, @AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) return "redirect:/";
+        
+        User user = checkAndUpgradeUser(principal);
+        if (!"BARBER".equals(user.getRole())) return "redirect:/dashboard-user";
+
+        List<Appointment> allAppts = appointmentRepository.findAll();
+        model.addAttribute("userName", user.getName());
+        model.addAttribute("userPhoto", (String) principal.getAttribute("picture"));
+        model.addAttribute("appointments", allAppts);
+        model.addAttribute("totalCitas", allAppts.size());
+        
+        return "dashboard-admin";
+    }
+
+    // RUTA PARA EL CLIENTE (USER)
+    @GetMapping("/dashboard-user")
+    public String showUserDashboard(Model model, @AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) return "redirect:/";
+
+        User user = checkAndUpgradeUser(principal);
+        
+        model.addAttribute("userName", user.getName());
+        model.addAttribute("userPhoto", (String) principal.getAttribute("picture"));
+        model.addAttribute("appointments", appointmentRepository.findByUser(user));
+        
+        return "dashboard-user";
+    }
+
+    // Método interno para no repetir código de comprobación de roles
+    private User checkAndUpgradeUser(OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        String name = principal.getAttribute("name");
+
         User user = userRepository.findByEmail(email).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setName(name);
-            newUser.setRole("USER"); // Por defecto todos son clientes
+            newUser.setRole("USER");
             return userRepository.save(newUser);
         });
 
-        // 2. EL FILTRO DE PODER: Solo Pablo y Claudia son BARBER
         boolean esJefe = email.equalsIgnoreCase("pablosantillana34@gmail.com") || 
                          email.equalsIgnoreCase("cllope04@ucm.es");
 
-        if (esJefe) {
-            if (!"BARBER".equals(user.getRole())) {
-                user.setRole("BARBER");
-                user = userRepository.save(user);
-            }
-        } else {
-            // Por si acaso el admin "fantasma" logueara, se quedaría como USER
-            if (!"USER".equals(user.getRole())) {
-                user.setRole("USER");
-                user = userRepository.save(user);
-            }
+        if (esJefe && !"BARBER".equals(user.getRole())) {
+            user.setRole("BARBER");
+            user = userRepository.save(user);
         }
-
-        model.addAttribute("userName", user.getName());
-        model.addAttribute("userPhoto", photoUrl);
-
-        if ("BARBER".equals(user.getRole())) {
-            List<Appointment> allAppts = appointmentRepository.findAll();
-            model.addAttribute("appointments", allAppts);
-            model.addAttribute("totalCitas", allAppts.size());
-            model.addAttribute("totalRevenue", allAppts.size() * 20); 
-            return "dashboard-admin"; 
-        } else {
-            model.addAttribute("appointments", appointmentRepository.findByUser(user));
-            return "dashboard-user";
-        }
+        return user;
     }
 }

@@ -12,7 +12,7 @@ public class MessageProducer {
     private RabbitTemplate rabbitTemplate;
 
     public void sendAppointmentNotification(String message) {
-        rabbitTemplate.convertAndSend(RabbitMQConfig.APPOINTMENT_QUEUE, message);
+    	rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_NAME, message);
         System.out.println("📬 Mensaje enviado a la cola: " + message);
     }
 }

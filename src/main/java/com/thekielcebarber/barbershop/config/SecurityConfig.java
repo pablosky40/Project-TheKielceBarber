@@ -21,7 +21,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/images/**", "/h2-console/**", "/css/**", "/js/**", "/set-intent/**").permitAll()
+                // AÑADIDAS: Rutas para el mapa y contacto (/location, /map, etc. según tus nombres)
+                .requestMatchers("/", "/index.html", "/images/**", "/h2-console/**", "/css/**", "/js/**", "/set-intent/**", "/location", "/contact").permitAll()
                 .requestMatchers("/dashboard/**").authenticated()
                 .anyRequest().permitAll()
             )
@@ -46,7 +47,6 @@ public class SecurityConfig {
                         userRepository.save(newUser);
                         response.sendRedirect("/dashboard");
                     } else {
-                        // LIMPIAMOS SESIÓN PARA FORZAR QUE EL ERROR APAREZCA SIEMPRE
                         request.getSession().invalidate();
                         response.sendRedirect("/?error=not_registered");
                     }
