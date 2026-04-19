@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); }
+        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); --red: #ff4d4d; }
         
         body { 
             background: linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.95)), url('/images/fondo.jpg') no-repeat center center fixed; 
@@ -17,10 +17,8 @@
 
         .navbar { background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid var(--gold); backdrop-filter: blur(10px); }
         .text-gold { color: var(--gold); }
-        
         .nav-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
 
-        /* Estilo de Tarjetas de Gestión */
         .card-admin { 
             background: var(--glass); 
             border: 1px solid rgba(212, 175, 55, 0.2); 
@@ -39,16 +37,11 @@
             transform: translateY(-10px); 
             background: rgba(212, 175, 55, 0.1);
             box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            color: white;
         }
 
-        .icon-box {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-            color: var(--gold);
-        }
+        .icon-box { font-size: 3rem; margin-bottom: 20px; display: block; color: var(--gold); }
 
-        /* Estilos de la tabla global */
         .admin-table-container { 
             background: rgba(0, 0, 0, 0.4); 
             border-radius: 25px; 
@@ -58,110 +51,171 @@
         }
 
         .table { --bs-table-bg: transparent; color: white !important; }
-        .table thead th { color: var(--gold); text-transform: uppercase; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
-        .table tbody td { padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .table thead th { color: var(--gold); text-transform: uppercase; border-bottom: 2px solid var(--gold); padding-bottom: 15px; font-weight: 800; }
+        .table tbody td { padding: 18px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; color: #fff !important; }
+
+        .status-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+        }
+        .status-paid { background: rgba(40, 167, 69, 0.15); color: #28a745; border: 1px solid #28a745; }
+        .status-local { background: rgba(255, 193, 7, 0.15); color: #ffc107; border: 1px solid #ffc107; }
 
         .btn-logout { color: rgba(255,255,255,0.6); font-weight: 600; transition: 0.3s; text-decoration: none; }
-        .btn-logout:hover { color: #ff4d4d; }
+        .btn-logout:hover { color: var(--red); }
         
-        .badge-admin { background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 6px; }
+        .badge-admin { background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; }
+        
+        .btn-app-delete { border-radius: 12px; font-weight: 700; transition: 0.3s; padding: 8px 15px; }
+        .modal-content { background: #121212; border: 1px solid var(--gold); color: white; border-radius: 25px; }
+        .profile-pic-nav { width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--gold); object-fit: cover; }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-dark p-3 sticky-top">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="navbar-brand d-flex align-items-center fw-bold text-gold tracking-tight" href="/dashboard-admin">
+            <a class="navbar-brand d-flex align-items-center fw-bold text-gold" th:href="@{/appointments/admin-dashboard}">
                 <img th:src="@{/images/barber-logo.jpg}" alt="Logo" class="nav-logo me-3">
                 THE KIELCE BARBER <span class="ms-2 badge bg-dark text-gold border border-gold" style="font-size: 0.6rem;">MASTER PANEL</span>
             </a>
-            <form th:action="@{/logout}" method="post">
-                <button class="btn btn-logout border-0 bg-transparent">
-                    <i class="bi bi-box-arrow-right me-2"></i>LOGOUT
-                </button>
-            </form>
+            
+            <div class="d-flex align-items-center gap-3">
+                <img th:if="${userPhoto}" th:src="${userPhoto}" class="profile-pic-nav" referrerpolicy="no-referrer">
+                <form th:action="@{/logout}" method="post" class="m-0">
+                    <button class="btn btn-logout border-0 bg-transparent">
+                        <i class="bi bi-box-arrow-right me-2"></i>LOGOUT
+                    </button>
+                </form>
+            </div>
         </div>
     </nav>
 
     <div class="container py-5">
-        <div class="mb-5">
-            <h1 class="fw-bold mb-0">Master Barber: <span class="text-gold" th:text="${userName}">Pablo</span></h1>
-            <p class="text-white-50">Manage your business operations and premium services.</p>
+        <div class="mb-5 text-center text-md-start">
+            <h1 class="fw-bold mb-0">Master Barber: <span class="text-gold" th:text="${userName}">Admin</span></h1>
+            <p class="text-white-50">Operational dashboard for premium grooming management.</p>
         </div>
 
         <div class="row g-4 mb-5 text-center">
             <div class="col-md-4">
-                <a th:href="@{/appointments/admin}" class="card-admin">
-                    <i class="bi bi-calendar3 icon-box"></i>
-                    <h4 class="fw-bold">MANAGE APPOINTMENTS</h4>
-                    <p class="small text-white-50 mb-0">Edit or cancel client bookings</p>
+                <a th:href="@{/appointments/admin}" class="card-admin shadow">
+                    <i class="bi bi-calendar-range icon-box"></i>
+                    <h4 class="fw-bold text-uppercase">Schedule Master</h4>
+                    <p class="small text-white-50 mb-0">Manage bookings & time blocks</p>
                 </a>
             </div>
             <div class="col-md-4">
-                <a th:href="@{/products/admin}" class="card-admin">
-                    <i class="bi bi-bag-plus icon-box"></i>
-                    <h4 class="fw-bold">MANAGE PRODUCTS</h4>
-                    <p class="small text-white-50 mb-0">Update stock and premium catalog</p>
+                <a th:href="@{/products/admin}" class="card-admin shadow">
+                    <i class="bi bi-shop icon-box"></i>
+                    <h4 class="fw-bold text-uppercase">Inventory</h4>
+                    <p class="small text-white-50 mb-0">Prices & stock control</p>
                 </a>
             </div>
             <div class="col-md-4">
-                <a th:href="@{/reviews/admin}" class="card-admin">
-                    <i class="bi bi-chat-quote icon-box"></i>
-                    <h4 class="fw-bold">MANAGE REVIEWS</h4>
-                    <p class="small text-white-50 mb-0">Moderate client feedback</p>
+                <a th:href="@{/reviews/admin}" class="card-admin shadow">
+                    <i class="bi bi-stars icon-box"></i>
+                    <h4 class="fw-bold text-uppercase">Reviews</h4>
+                    <p class="small text-white-50 mb-0">Customer feedback moderation</p>
                 </a>
             </div>
         </div>
 
-        <div class="admin-table-container">
+        <div class="admin-table-container shadow-lg">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-gold fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2"></i>RECENT ACTIVITY</h3>
-                <span class="text-white-50 small">Total Appointments: <b class="text-gold" th:text="${totalCitas}">0</b></span>
+                <h3 class="text-gold fw-bold mb-0"><i class="bi bi-person-check me-2"></i>CLIENT ACTIVITY</h3>
+                <span class="text-white-50 small">Appointments found: <b class="text-gold" th:text="${totalCitas}">0</b></span>
             </div>
             
             <div class="table-responsive">
                 <table class="table align-middle">
                     <thead>
                         <tr>
-                            <th>Client</th>
-                            <th>Schedule</th>
+                            <th>Client Info</th>
+                            <th>Date & Time</th>
                             <th>Service</th>
-                            <th>Status</th>
-                            <th class="text-end">Manage</th>
+                            <th class="text-center">Payment Status</th>
+                            <th class="text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="appt : ${appointments}">
                             <td>
-                                <div class="fw-bold" th:text="${appt.user?.name ?: 'Guest Account'}">Client Name</div>
-                                <div class="small text-white-50" th:text="${appt.user?.email ?: 'No Email'}">email@example.com</div>
+                                <div class="fw-bold text-white" 
+                                     th:text="${appt.user != null ? appt.user.name : 'Guest User'}">
+                                    Client Name
+                                </div>
+                                <div class="small text-white-50" 
+                                     th:text="${appt.user != null ? appt.user.email : 'No Email'}">
+                                    email@example.com
+                                </div>
                             </td>
                             <td>
-                                <div class="text-white" th:text="${appt.date}">2026-04-18</div>
-                                <div class="text-gold fw-bold" th:text="${appt.time}">15:30</div>
+                                <div class="text-white fw-bold" th:text="${appt.date}">2026-04-18</div>
+                                <div class="text-gold small fw-bold" th:text="${appt.time}">15:30</div>
                             </td>
                             <td>
-                                <span class="badge-admin" th:text="${appt.service}">Haircut Premium</span>
+                                <span class="badge-admin" th:text="${appt.service?.name ?: 'Standard Service'}">Haircut</span>
                             </td>
-                            <td>
-                                <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i> CONFIRMED</span>
+                            <td class="text-center">
+                                <span th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="status-badge status-paid">
+                                    <i class="bi bi-credit-card-fill me-1"></i> PAID ONLINE
+                                </span>
+                                <span th:if="${appt.paymentStatus == 'PENDING_LOCAL'}" class="status-badge status-local">
+                                    <i class="bi bi-cash-stack me-1"></i> PAY AT SHOP
+                                </span>
+                                <span th:if="${appt.paymentStatus == 'PENDING'}" class="text-white-50 small fw-bold">
+                                    <i class="bi bi-clock me-1"></i> PENDING
+                                </span>
                             </td>
                             <td class="text-end">
-                                <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post" style="display:inline;">
-                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
-                                        <i class="bi bi-trash3 me-1"></i> DELETE
-                                    </button>
-                                </form>
+                                <button class="btn btn-outline-danger btn-sm btn-app-delete px-3" 
+                                        th:onclick="'openDeleteModal(' + ${appt.id} + ')'">
+                                    <i class="bi bi-trash3 me-1"></i> DELETE
+                                </button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            
             <div th:if="${#lists.isEmpty(appointments)}" class="text-center py-5">
-                <p class="text-white-50">No activity recorded for today.</p>
+                <i class="bi bi-calendar2-x text-white-50 display-4 mb-3 d-block"></i>
+                <p class="text-white-50">No activity scheduled for today.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteDashboardModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-danger text-center p-3">
+                <div class="modal-body">
+                    <i class="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+                    <h5 class="fw-bold">Remove Entry?</h5>
+                    <p class="small text-white-50">This action will permanently delete the record.</p>
+                </div>
+                <div class="d-flex gap-2 p-2">
+                    <button type="button" class="btn btn-outline-secondary w-100 fw-bold rounded-pill" data-bs-dismiss="modal">BACK</button>
+                    <form id="deleteFormDashboard" method="post" class="w-100">
+                        <input type="hidden" name="source" value="admin-dashboard">
+                        <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill">DELETE</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        function openDeleteModal(id) {
+            const form = document.getElementById('deleteFormDashboard');
+            form.action = '/appointments/cancel/' + id;
+            new bootstrap.Modal(document.getElementById('deleteDashboardModal')).show();
+        }
+    </script>
 </body>
 </html>

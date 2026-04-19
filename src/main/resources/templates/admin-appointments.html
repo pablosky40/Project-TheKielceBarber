@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Schedule Master | The Kielce Barber</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); --red: #ff4d4d; }
+        
+        body { 
+            background: linear-gradient(rgba(0,0,0,0.94), rgba(0,0,0,0.96)), url('/images/fondo.jpg') no-repeat center center fixed; 
+            background-size: cover; color: white; font-family: 'Montserrat', sans-serif; min-height: 100vh; 
+        }
+
+        .navbar { background: rgba(0, 0, 0, 0.9); border-bottom: 2px solid var(--gold); backdrop-filter: blur(10px); }
+        .text-gold { color: var(--gold); }
+        
+        .btn-back {
+            color: white; text-decoration: none; font-weight: 700; font-size: 0.85rem;
+            transition: 0.3s; display: flex; align-items: center; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-back:hover { color: var(--gold); transform: translateX(-5px); }
+
+        .admin-card { 
+            background: rgba(0, 0, 0, 0.85) !important; 
+            border: 1px solid rgba(212, 175, 55, 0.4); 
+            border-radius: 20px; 
+            padding: 25px; 
+            height: 100%; 
+            backdrop-filter: blur(10px);
+        }
+
+        .table { color: white !important; background-color: transparent !important; }
+        .table thead th { 
+            color: var(--gold) !important; 
+            text-transform: uppercase; 
+            font-size: 0.8rem; 
+            border-bottom: 2px solid var(--gold);
+            background-color: transparent !important;
+        }
+        
+        .table tbody td { 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            padding: 15px 10px;
+            background-color: transparent !important;
+            color: white !important;
+        }
+
+        .row-blocked { background: rgba(212, 175, 55, 0.05) !important; border-left: 4px solid var(--gold); }
+        
+        .badge-blocked { 
+            background: black; 
+            color: var(--gold); 
+            border: 1px solid var(--gold);
+            font-weight: 800; padding: 5px 12px; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; 
+        }
+
+        /* ESTILOS DE ESTADO (Badges) */
+        .status-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 50px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+        }
+        .status-paid { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .status-local { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+
+        .btn-delete-pro {
+            background-color: transparent; border: 2px solid var(--red); color: var(--red);
+            border-radius: 10px; padding: 8px 14px; transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-delete-pro:hover { background-color: var(--red); color: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); }
+
+        .form-control, .form-select { background: rgba(0,0,0,0.5) !important; border: 1px solid rgba(212,175,55,0.3) !important; color: white !important; border-radius: 10px; }
+        .btn-gold { background: var(--gold); color: black; font-weight: 800; border-radius: 12px; border: none; transition: 0.3s; }
+        .btn-gold:hover { background: white; transform: translateY(-2px); }
+
+        .modal-content { background: rgba(20, 20, 20, 0.98); border: 1px solid var(--gold); border-radius: 25px; backdrop-filter: blur(15px); color: white; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark p-3 sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a th:href="@{/appointments/admin-dashboard}" class="btn-back me-4">
+                    <i class="bi bi-arrow-left-circle me-2 fs-5"></i> Back to Panel
+                </a>
+                <a class="navbar-brand d-flex align-items-center fw-bold text-gold" th:href="@{/appointments/admin-dashboard}">
+                    <img th:src="@{/images/barber-logo.jpg}" alt="Logo" style="width:40px; border-radius:50%;" class="me-3"> 
+                    ADMIN PANEL
+                </a>
+            </div>
+            <div class="d-flex align-items-center">
+                <span class="me-3 fw-bold small" th:text="${userName}">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="admin-card mb-4">
+                    <h5 class="text-gold fw-bold mb-4"><i class="bi bi-clock-history me-2"></i>CLOSE HOUR</h5>
+                    <form th:action="@{/appointments/admin/block}" method="post">
+                        <label class="form-label small text-white-50 fw-bold">DATE</label>
+                        <input type="date" name="date" class="form-control mb-3 date-picker-limit" required>
+                        <label class="form-label small text-white-50 fw-bold">TIME SLOT</label>
+                        <select name="time" class="form-select mb-4">
+                            <option value="11:00">11:00 AM</option><option value="12:00">12:00 PM</option>
+                            <option value="13:00">01:00 PM</option><option value="16:00">04:00 PM</option>
+                            <option value="17:00">05:00 PM</option><option value="18:00">06:00 PM</option>
+                        </select>
+                        <button type="submit" class="btn btn-gold w-100 py-2">BLOCK HOUR</button>
+                    </form>
+                </div>
+
+                <div class="admin-card">
+                    <h5 class="text-danger fw-bold mb-4"><i class="bi bi-calendar-x-fill me-2"></i>CLOSE FULL DAY</h5>
+                    <form th:action="@{/appointments/admin/block-day}" method="post">
+                        <p class="small text-white-50">Block all bookings for the selected date.</p>
+                        <input type="date" name="date" class="form-control mb-4 date-picker-limit" required>
+                        <button type="submit" class="btn btn-danger w-100 fw-bold py-2">BLOCK ENTIRE DAY</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="admin-card">
+                    <h5 class="text-gold fw-bold mb-4">SCHEDULE OVERVIEW</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>CLIENT INFO</th>
+                                    <th>DATE & TIME</th>
+                                    <th class="text-center">STATUS</th>
+                                    <th class="text-end">MANAGE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="appt : ${appointments}" th:classappend="${appt.paymentStatus == 'BLOCKED' ? 'row-blocked' : ''}">
+                                    <td>
+                                        <div th:if="${appt.paymentStatus == 'BLOCKED'}">
+                                            <span class="badge-blocked">
+                                                <i class="bi bi-lock-fill me-1"></i>
+                                                <span th:text="${appt.time == 'FULL DAY' ? 'FULL DAY CLOSED' : 'CLOSED'}">STATUS</span>
+                                            </span>
+                                        </div>
+                                        <div th:unless="${appt.paymentStatus == 'BLOCKED'}">
+                                            <div class="fw-bold text-white" th:text="${appt.user != null ? appt.user.name : 'Guest User'}">Name</div>
+                                            <div class="small text-white-50" th:text="${appt.user != null ? appt.user.email : 'No Email'}">Email</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold text-white" th:text="${appt.date}">Date</div>
+                                        <div class="text-gold fw-bold" th:text="${appt.time}">Time</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div th:unless="${appt.paymentStatus == 'BLOCKED'}">
+                                            <span th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="status-badge status-paid">
+                                                <i class="bi bi-credit-card-fill me-1"></i> PAID ONLINE
+                                            </span>
+                                            <span th:if="${appt.paymentStatus == 'PENDING_LOCAL'}" class="status-badge status-local">
+                                                <i class="bi bi-cash-stack me-1"></i> PAY AT SHOP
+                                            </span>
+                                        </div>
+                                        <span th:if="${appt.paymentStatus == 'BLOCKED'}" class="text-white-50 small">-</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn-delete-pro" th:onclick="|prepareDelete('${appt.id}')|">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-gold">Confirm Action</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-exclamation-octagon text-danger fs-1 mb-3 d-block"></i>
+                    <p class="fs-5">Are you sure you want to delete this entry?</p>
+                </div>
+                <div class="modal-footer justify-content-center border-0 pb-4">
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 12px; padding: 10px 25px;" data-bs-dismiss="modal">Go Back</button>
+                    <form id="deleteForm" method="post">
+                        <input type="hidden" name="source" value="admin">
+                        <button type="submit" style="background: var(--red); color: white; font-weight: 700; border-radius: 12px; border: none; padding: 10px 25px;">Confirm & Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const deleteForm = document.getElementById('deleteForm');
+
+        function prepareDelete(id) {
+            deleteForm.action = '/appointments/cancel/' + id;
+            deleteModal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const datePickers = document.querySelectorAll('.date-picker-limit');
+            datePickers.forEach(picker => {
+                picker.setAttribute('min', today);
+            });
+        });
+    </script>
+</body>
+</html>

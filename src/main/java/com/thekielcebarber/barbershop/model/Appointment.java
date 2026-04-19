@@ -12,15 +12,25 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Esta anotación es CLAVE para que el formulario HTML y Java se entiendan
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 
     private String time;
-    private String service;
+
+    // RELACIÓN CON SERVICIO (Según tu diagrama service_id -> Service.id)
+    @ManyToOne
+    @JoinColumn(name = "service_id")
+    private Service service;
+
     private String barber;
+    
+    // Mantenemos el precio por si quieres guardar el precio histórico 
+    // (por si el servicio sube de precio en el futuro, que la cita no cambie)
+    private Double price; 
+    
     private String paymentStatus = "PENDING";
 
+    // RELACIÓN CON USUARIO (user_id -> User.id)
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -29,13 +39,14 @@ public class Appointment {
     public Appointment() {
     }
 
-    // 2. Constructor completo
-    public Appointment(Long id, LocalDate date, String time, String service, String barber, String paymentStatus, User user) {
+    // 2. Constructor completo (Actualizado)
+    public Appointment(Long id, LocalDate date, String time, Service service, String barber, Double price, String paymentStatus, User user) {
         this.id = id;
         this.date = date;
         this.time = time;
         this.service = service;
         this.barber = barber;
+        this.price = price;
         this.paymentStatus = paymentStatus;
         this.user = user;
     }
@@ -65,11 +76,11 @@ public class Appointment {
         this.time = time;
     }
 
-    public String getService() {
+    public Service getService() {
         return service;
     }
 
-    public void setService(String service) {
+    public void setService(Service service) {
         this.service = service;
     }
 
@@ -79,6 +90,14 @@ public class Appointment {
 
     public void setBarber(String barber) {
         this.barber = barber;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 
     public String getPaymentStatus() {

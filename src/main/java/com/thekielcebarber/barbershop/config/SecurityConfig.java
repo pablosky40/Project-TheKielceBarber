@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                // AÑADIDAS: Rutas para el mapa y contacto (/location, /map, etc. según tus nombres)
+                
                 .requestMatchers("/", "/index.html", "/images/**", "/h2-console/**", "/css/**", "/js/**", "/set-intent/**", "/location", "/contact").permitAll()
                 .requestMatchers("/dashboard/**").authenticated()
                 .anyRequest().permitAll()

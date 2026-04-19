@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
+import java.util.stream.Collectors; // IMPORTANTE: Para el filtrado
 
 @Controller
 public class DashboardController {
@@ -22,22 +23,20 @@ public class DashboardController {
     @Autowired
     private UserRepository userRepository;
 
-    // ESTA ES LA RUTA DE ENTRADA (Decide a dónde mandarte)
+    // 1. RUTA DE ENTRADA
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return "redirect:/";
 
-        String email = principal.getAttribute("email");
         User user = checkAndUpgradeUser(principal);
 
-        // Si es jefe, lo mandamos a la URL de admin, si no a la de usuario
         if ("BARBER".equals(user.getRole())) {
             return "redirect:/dashboard-admin";
         }
         return "redirect:/dashboard-user";
     }
 
-    // RUTA PARA EL BARBERO (ADMIN) - ¡Ahora sí existe!
+    // 2. RUTA PARA EL BARBERO (ADMIN)
     @GetMapping("/dashboard-admin")
     public String showAdminDashboard(Model model, @AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return "redirect:/";
@@ -45,16 +44,23 @@ public class DashboardController {
         User user = checkAndUpgradeUser(principal);
         if (!"BARBER".equals(user.getRole())) return "redirect:/dashboard-user";
 
-        List<Appointment> allAppts = appointmentRepository.findAll();
+        // --- FILTRADO MÁGICO ---
+        // Obtenemos todas las citas pero EXCLUIMOS las que son de tipo "BLOQUEO"
+        List<Appointment> onlyClientAppts = appointmentRepository.findAll().stream()
+                .filter(appt -> !"BLOQUEO".equals(appt.getService()))
+                .collect(Collectors.toList());
+
         model.addAttribute("userName", user.getName());
         model.addAttribute("userPhoto", (String) principal.getAttribute("picture"));
-        model.addAttribute("appointments", allAppts);
-        model.addAttribute("totalCitas", allAppts.size());
+        
+        // Enviamos la lista filtrada a la tabla de actividad reciente
+        model.addAttribute("appointments", onlyClientAppts);
+        model.addAttribute("totalCitas", onlyClientAppts.size());
         
         return "dashboard-admin";
     }
 
-    // RUTA PARA EL CLIENTE (USER)
+    // 3. RUTA PARA EL CLIENTE (USER)
     @GetMapping("/dashboard-user")
     public String showUserDashboard(Model model, @AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return "redirect:/";
@@ -63,12 +69,14 @@ public class DashboardController {
         
         model.addAttribute("userName", user.getName());
         model.addAttribute("userPhoto", (String) principal.getAttribute("picture"));
+        
+        // Aquí solo mostramos las citas propias del usuario logueado
         model.addAttribute("appointments", appointmentRepository.findByUser(user));
         
         return "dashboard-user";
     }
 
-    // Método interno para no repetir código de comprobación de roles
+    // Método interno para gestión de usuarios y roles
     private User checkAndUpgradeUser(OAuth2User principal) {
         String email = principal.getAttribute("email");
         String name = principal.getAttribute("name");
@@ -81,6 +89,7 @@ public class DashboardController {
             return userRepository.save(newUser);
         });
 
+        // Configuración de los administradores jefes
         boolean esJefe = email.equalsIgnoreCase("pablosantillana34@gmail.com") || 
                          email.equalsIgnoreCase("cllope04@ucm.es");
 

@@ -8,44 +8,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.05); }
-        
         body { 
             background: linear-gradient(rgba(0,0,0,0.92), rgba(0,0,0,0.95)), url('/images/fondo.jpg') no-repeat center center fixed; 
-            background-size: cover; color: white; 
-            font-family: 'Montserrat', sans-serif; min-height: 100vh; 
+            background-size: cover; color: white; font-family: 'Montserrat', sans-serif; min-height: 100vh; 
         }
-
         .navbar { background: rgba(0, 0, 0, 0.85); border-bottom: 1px solid rgba(212,175,55,0.2); backdrop-filter: blur(10px); }
         .text-gold { color: var(--gold); }
-        
         .nav-logo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold); }
-
         .profile-container {
-            width: 80px; height: 80px;
-            background: #fff; border: 3px solid var(--gold);
+            width: 80px; height: 80px; background: #fff; border: 3px solid var(--gold);
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; border-radius: 50%;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            overflow: hidden; border-radius: 50%; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
         }
         .profile-img { width: 100%; height: 100%; object-fit: cover; }
-
         .card-option { 
             background: var(--glass); border: 1px solid rgba(255,255,255,0.1); 
             border-radius: 20px; padding: 30px; text-align: center; text-decoration: none; 
             display: block; transition: 0.4s; color: white; backdrop-filter: blur(5px);
         }
         .card-option:hover { border-color: var(--gold); transform: translateY(-8px); background: rgba(212,175,55,0.05); }
-
         .appt-card { background: rgba(255, 255, 255, 0.03); border-radius: 25px; padding: 35px; border: 1px solid rgba(212,175,55,0.15); backdrop-filter: blur(15px); }
         .table { --bs-table-bg: transparent; color: white !important; border-color: rgba(255,255,255,0.1); }
         .table thead th { color: var(--gold) !important; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
         .table tbody td { color: #ffffff !important; padding: 20px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
-        .badge-service { background: transparent; border: 1px solid var(--gold); color: white !important; font-weight: 600; padding: 8px 15px; border-radius: 8px; }
-
+        .badge-service { border: 1px solid var(--gold); color: white !important; font-weight: 600; padding: 8px 15px; border-radius: 8px; display: inline-block; text-transform: uppercase; font-size: 0.75rem; }
         .address-link { color: #ffffff; text-decoration: none; transition: 0.3s; font-weight: 700; }
         .address-link:hover { color: var(--gold); text-decoration: underline; }
-
         .map-section { border-radius: 25px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2); background: var(--glass); }
         .info-box { background: rgba(0, 0, 0, 0.6); padding: 40px; }
     </style>
@@ -53,14 +41,11 @@
 <body>
     <nav class="navbar navbar-dark p-3 sticky-top">
         <div class="container d-flex justify-content-between align-items-center">
-            <a class="navbar-brand d-flex align-items-center fw-bold text-gold tracking-tight" href="/dashboard-user">
-                <img th:src="@{/images/barber-logo.jpg}" alt="Logo" class="nav-logo me-3">
-                THE KIELCE BARBER
+            <a class="navbar-brand d-flex align-items-center fw-bold text-gold tracking-tight" th:href="@{/dashboard}">
+                <img th:src="@{/images/barber-logo.jpg}" alt="Logo" class="nav-logo me-3"> THE KIELCE BARBER
             </a>
             <form th:action="@{/logout}" method="post">
-                <button class="btn btn-logout border-0 bg-transparent text-white-50 fw-bold">
-                    <i class="bi bi-box-arrow-right me-2"></i>LOGOUT
-                </button>
+                <button class="btn btn-logout border-0 bg-transparent text-white-50 fw-bold"><i class="bi bi-box-arrow-right me-2"></i>LOGOUT</button>
             </form>
         </div>
     </nav>
@@ -68,14 +53,12 @@
     <div class="container py-5">
         <div class="d-flex align-items-center justify-content-between mb-5">
             <div>
-                <h1 class="fw-bold mb-0">Welcome, <span class="text-gold" th:text="${userName}">User</span></h1>
+                <h1 class="fw-bold mb-0">Welcome <span class="text-gold" th:text="${userName}">User</span></h1>
                 <p class="text-white-50 mt-2">Ready for your next style evolution?</p>
             </div>
             <div class="profile-container">
-                 <img th:if="${userPhoto != null}" th:src="${userPhoto}" 
-                      referrerpolicy="no-referrer"
-                      class="profile-img" 
-                      onerror="this.src='https://ui-avatars.com/api/?name=User&background=d4af37&color=fff'">
+                 <img th:if="${userPhoto != null}" th:src="${userPhoto}" referrerpolicy="no-referrer" class="profile-img" onerror="this.src='https://ui-avatars.com/api/?name=User&background=d4af37&color=fff'">
+                 <img th:if="${userPhoto == null}" src="https://ui-avatars.com/api/?name=User&background=d4af37&color=fff" class="profile-img">
             </div>
         </div>
 
@@ -104,7 +87,10 @@
                                 <div class="text-gold fw-bold" th:text="${appt.time}">Time</div>
                             </td>
                             <td class="text-white fw-medium" th:text="${appt.barber}">Barber</td>
-                            <td><span class="badge badge-service" th:text="${appt.service}">Service</span></td>
+                            <td>
+                                <span class="badge badge-service" th:text="${appt.service.name}">Service Name</span>
+                                <div class="small text-white-50 mt-1" th:text="${appt.price} + '€'">Price</div>
+                            </td>
                             <td class="text-center">
                                 <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post">
                                     <button class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-bold" style="border-width: 2px;">CANCEL</button>
@@ -113,10 +99,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
-            <div th:if="${#lists.isEmpty(appointments)}" class="text-center py-5">
-                <i class="bi bi-calendar-x fs-1 text-white-50 mb-3"></i>
-                <p class="text-white-50 fs-5">No active appointments. Time for a trim?</p>
             </div>
         </div>
 
@@ -145,10 +127,17 @@
                 </div>
                 <div class="col-lg-8" style="min-height: 400px; background: #222;">
                     <iframe 
-                        src="https://maps.google.com/maps?q=Galeria%20Korona%20Kielce&t=&z=15&ie=UTF8&iwloc=&output=embed" 
-                        width="100%" height="100%" style="border:0; min-height: 400px;" 
-                        allowfullscreen="" loading="lazy">
+                        width="100%" 
+                        height="100%" 
+                        style="border:0; min-height: 400px;" 
+                        loading="lazy" 
+                        allowfullscreen 
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="https://www.google.com/maps/embed/v1/place?key=TU_API_KEY_AQUI&q=Galeria+Korona+Kielce">
                     </iframe>
+                    <script>
+                        document.querySelector('iframe').src = "https://maps.google.com/maps?q=Galeria%20Korona%20Kielce&t=&z=15&ie=UTF8&iwloc=&output=embed";
+                    </script>
                 </div>
             </div>
         </div>

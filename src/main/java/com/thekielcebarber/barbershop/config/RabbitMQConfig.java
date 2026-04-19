@@ -30,7 +30,7 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
     }
 
-    // MEJORA: Permite enviar objetos Java como JSON automáticamente
+  
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
