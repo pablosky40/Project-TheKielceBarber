@@ -22,7 +22,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* RETOQUE DE LETRAS BLANCAS */
         .table { --bs-table-bg: transparent; margin-bottom: 0; }
         .table thead th { 
             color: var(--gold) !important; 
@@ -31,7 +30,6 @@
             font-weight: 800;
             letter-spacing: 1px;
         }
-        /* Forzamos el blanco en todas las celdas del cuerpo */
         .table tbody td { 
             color: #ffffff !important; 
             font-weight: 500; 
@@ -50,25 +48,51 @@
             border: none; 
             transition: 0.3s;
         }
-        .btn-gold:hover { background: white; transform: translateY(-2px); }
+        .btn-gold:hover { background: white; transform: translateY(-2px); color: black; }
 
         .modal-content { background: #121212; border: 1px solid var(--gold); color: white; border-radius: 20px; }
         .form-control { background: #1a1a1a !important; color: white !important; border: 1px solid #444 !important; }
+        .form-control:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+        
+        .form-label-gold { color: var(--gold); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+
+        /* ESTILO PARA EL SELECTOR DE ARCHIVOS (LOGO/IMAGEN) */
+        input[type="file"]::file-selector-button {
+            background-color: var(--gold);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 15px;
+            font-weight: 800;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: white;
+        }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-dark p-3 mb-5 sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-gold d-flex align-items-center" th:href="@{/dashboard-admin}">
+            <a class="navbar-brand fw-bold text-gold d-flex align-items-center" th:href="@{/appointments/admin-dashboard}">
                 <i class="bi bi-arrow-left-circle me-2 fs-4"></i> BACK TO PANEL
             </a>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="text-center mb-5">
-            <h1 class="fw-bold display-5">Inventory <span class="text-gold">Control</span></h1>
-            <p class="text-white-50">Manage prices and stock for your premium products</p>
+    <div class="container pb-5">
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <h1 class="fw-bold display-5 mb-0">Inventory <span class="text-gold">Control</span></h1>
+                <p class="text-white-50 mb-0">Manage prices and stock for your premium products</p>
+            </div>
+            <button class="btn btn-gold px-4 py-3 shadow" data-bs-toggle="modal" data-bs-target="#addProdModal">
+                <i class="bi bi-plus-lg me-2"></i> ADD NEW PRODUCT
+            </button>
         </div>
 
         <div class="admin-card">
@@ -93,7 +117,7 @@
                                         th:data-name="${product.name}"
                                         th:data-price="${product.price}"
                                         th:data-stock="${product.stock}"
-                                        onclick="openModal(this)">
+                                        onclick="openEditModal(this)">
                                     <i class="bi bi-pencil-fill me-1"></i> EDIT
                                 </button>
                             </td>
@@ -101,6 +125,44 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProdModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form th:action="@{/products/admin/add}" method="post" enctype="multipart/form-data" class="modal-content p-3 shadow-lg">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">Add <span class="text-gold">New Product</span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label-gold">NAME</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Premium Wax" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-gold">DESCRIPTION</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Brief details about the product" required></textarea>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-gold">PRICE (€)</label>
+                            <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-gold">INITIAL STOCK</label>
+                            <input type="number" name="stock" class="form-control" placeholder="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label-gold">PRODUCT IMAGE / LOGO</label>
+                        <input type="file" name="imageFile" class="form-control" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-gold w-100 py-3">SAVE NEW PRODUCT</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -114,11 +176,11 @@
                 <div class="modal-body">
                     <input type="hidden" name="id" id="mId">
                     <div class="mb-4">
-                        <label class="form-label text-white-50 small fw-bold">NEW PRICE (€)</label>
+                        <label class="form-label-gold">NEW PRICE (€)</label>
                         <input type="number" step="0.01" name="price" id="mPrice" class="form-control form-control-lg" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-white-50 small fw-bold">NEW STOCK LEVEL</label>
+                        <label class="form-label-gold">NEW STOCK LEVEL</label>
                         <input type="number" name="stock" id="mStock" class="form-control form-control-lg" required>
                     </div>
                 </div>
@@ -131,7 +193,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function openModal(btn) {
+        function openEditModal(btn) {
             document.getElementById('mId').value = btn.getAttribute('data-id');
             document.getElementById('mName').innerText = btn.getAttribute('data-name');
             document.getElementById('mPrice').value = btn.getAttribute('data-price');
