@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -20,10 +21,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                .disable() // Deshabilitado para pruebas, pero ignorando H2 específicamente
+            )
             .authorizeHttpRequests(auth -> auth
-                
-                .requestMatchers("/", "/index.html", "/images/**", "/h2-console/**", "/css/**", "/js/**", "/set-intent/**", "/location", "/contact").permitAll()
-                .requestMatchers("/dashboard/**").authenticated()
+                // IMPORTANTE: Permitir H2 antes que el resto
+                .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
+                .requestMatchers("/", "/index.html", "/images/**", "/css/**", "/js/**", "/set-intent/**", "/location", "/contact").permitAll()
+                .requestMatchers("/dashboard/**", "/dashboard-admin/**", "/appointments/**", "/products/**").authenticated() 
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -37,6 +43,7 @@ public class SecurityConfig {
                     var userOpt = userRepository.findByEmail(email);
 
                     if (userOpt.isPresent()) {
+                        // Si el usuario existe, redirigir según su rol si quieres, o al dashboard general
                         response.sendRedirect("/dashboard");
                     } else if ("register".equals(intent)) {
                         com.thekielcebarber.barbershop.model.User newUser = new com.thekielcebarber.barbershop.model.User();
@@ -52,8 +59,8 @@ public class SecurityConfig {
                     }
                 })
             )
-            .csrf(csrf -> csrf.disable())
-            .headers(headers -> headers.frameOptions(f -> f.disable()));
+            // Esto es CRUCIAL para que la H2 Console funcione y no dé error de Bean
+            .headers(headers -> headers.frameOptions(f -> f.sameOrigin()));
             
         return http.build();
     }

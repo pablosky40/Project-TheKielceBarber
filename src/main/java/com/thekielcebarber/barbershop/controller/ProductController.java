@@ -35,27 +35,23 @@ public class ProductController {
         return "admin-products";
     }
 
-    // 3. ACCIÓN AÑADIR PRODUCTO (Nueva)
     @PostMapping("/admin/add")
     public String addProduct(@ModelAttribute Product product, 
                              @RequestParam("imageFile") MultipartFile imageFile) {
-    	try {
-    	    if (!imageFile.isEmpty()) {
-    	        String fileName = imageFile.getOriginalFilename();
-    	        Path path = Paths.get("src/main/resources/static/images/" + fileName);
-    	        
-    	        // CORRECCIÓN AQUÍ: Primero el path, luego los bytes del archivo subido
-    	        Files.write(path, imageFile.getBytes());
-    	        
-    	        // Revisa que en tu modelo Product exista el método setImage
-    	        product.setImageUrl("/images/" + fileName);
-    	    } else {
-    	        product.setImageUrl("/images/default-product.jpg");
-    	    }
-    	    productRepository.save(product);
-    	} catch (IOException e) {
-    	    e.printStackTrace();
-    	
+        // Spring Boot ya ha metido el 'brand' dentro de 'product' automáticamente
+        try {
+            if (!imageFile.isEmpty()) {
+                String fileName = imageFile.getOriginalFilename();
+                // OJO: Asegúrate de que esta carpeta exista en tu PC
+                Path path = Paths.get("src/main/resources/static/images/" + fileName);
+                Files.write(path, imageFile.getBytes());
+                product.setImageUrl("/images/" + fileName);
+            } else {
+                product.setImageUrl("/images/default-product.jpg");
+            }
+            productRepository.save(product);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return "redirect:/products/admin";
     }
