@@ -6,3 +6,7 @@ DELETE FROM PRODUCT WHERE ID = (SELECT MAX(ID) FROM PRODUCT) [42102-232]
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Tabla "PRODUCT" no encontrada
 Table "PRODUCT" not found; SQL statement:
 DELETE FROM PRODUCT WHERE ID = (SELECT MAX(ID) FROM PRODUCT) [42102-232]
+2026-04-21 16:08:49.596041+02:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Error de Sintaxis en sentencia SQL "DELETE [*]* FROM USERS WHERE email= 'pablosantillana7@gmail.com'"; se esperaba "identifier"
+Syntax error in SQL statement "DELETE [*]* FROM USERS WHERE email= 'pablosantillana7@gmail.com'"; expected "identifier"; SQL statement:
+DELETE * FROM USERS WHERE email= 'pablosantillana7@gmail.com' [42001-232]

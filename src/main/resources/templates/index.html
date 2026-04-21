@@ -126,11 +126,6 @@
             transform: translateY(-3px); 
         }
 
-        .bi-geo-alt-fill {
-            font-size: 1.2rem;
-            color: #d4af37;
-        }
-
         .error-msg {
             margin-top: 25px; 
             padding: 12px;
@@ -167,15 +162,15 @@
             <div class="social-title">WHERE ARE WE?</div>
             <div class="social-icon-box">
                 <a th:href="@{/location}" class="social-icon-link" title="Our Location">
-                    <i class="bi bi-geo-alt-fill"></i>
+                    <i class="bi bi-geo-alt-fill" style="color: #d4af37;"></i>
                     <span>VIEW MAP</span>
                 </a>
             </div>
         </div>
 
-        <div th:if="${param.error}" class="error-msg">
+        <div th:if="${param.error}" class="error-msg" id="errorContainer">
             <i class="bi bi-exclamation-circle-fill me-2"></i>
-            <span th:text="${param.error[0] == 'not_registered' ? 'Account not found. Please register first!' : 'Authentication error.'}"></span>
+            <span th:text="${param.error[0] == 'not_registered' ? 'This account is not registered. Please create an account first!' : 'Authentication error.'}"></span>
         </div>
 
         <div class="mt-4 text-white-50 small" style="letter-spacing: 1px; font-size: 0.65rem;">
@@ -184,7 +179,27 @@
     </div>
 
     <script>
-        function setIntent(val) { fetch('/set-intent?intent=' + val); }
+        // Esta función avisa al backend de qué botón se ha pulsado
+        function setIntent(val) { 
+            fetch('/set-intent?intent=' + val); 
+        }
+
+        window.onload = function() {
+            // Limpiador de errores visuales tras 5 segundos
+            if (window.location.search.includes('error')) {
+                const errorDiv = document.getElementById('errorContainer');
+                setTimeout(() => {
+                    if (errorDiv) {
+                        errorDiv.style.transition = "opacity 0.5s ease";
+                        errorDiv.style.opacity = "0";
+                        setTimeout(() => errorDiv.style.display = 'none', 500);
+                    }
+                    const url = new URL(window.location);
+                    url.searchParams.delete('error');
+                    window.history.replaceState({}, document.title, url.pathname);
+                }, 5000);
+            }
+        };
     </script>
 </body>
 </html>
