@@ -3,7 +3,7 @@ package com.thekielcebarber.barbershop.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@Controller // <--- IMPORTANTE: Cámbialo de @RestController a @Controller
+@Controller // 
 public class HomeController {
 
     @GetMapping("/")

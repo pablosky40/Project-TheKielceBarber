@@ -112,9 +112,10 @@
                         <input type="date" name="date" class="form-control mb-3 date-picker-limit" required>
                         <label class="form-label small text-white-50 fw-bold">TIME SLOT</label>
                         <select name="time" class="form-select mb-4">
-                            <option value="11:00">11:00 AM</option><option value="12:00">12:00 PM</option>
-                            <option value="13:00">01:00 PM</option><option value="16:00">04:00 PM</option>
-                            <option value="17:00">05:00 PM</option><option value="18:00">06:00 PM</option>
+                            <option value="11:00">11:00 </option><option value="12:00">12:00 </option>
+                            <option value="13:00">13:00 </option><option value="16:00">16:00 </option>
+                            <option value="17:00">17:00 </option><option value="18:00">18:00 </option>
+                            <option value="19:00">19:00 </option><option value="18:00">20:00 </option>
                         </select>
                         <button type="submit" class="btn btn-gold w-100 py-2">BLOCK HOUR</button>
                     </form>
@@ -207,7 +208,7 @@
                 <div class="modal-footer justify-content-center border-0 pb-4">
                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Go Back</button>
                     <form id="deleteForm" method="post">
-                        <input type="hidden" name="source" value="admin">
+                        <input type="hidden" name="source" value="admin-schedule">
                         <button type="submit" class="btn btn-danger px-4 fw-bold">Confirm & Delete</button>
                     </form>
                 </div>
@@ -221,13 +222,11 @@
         const deleteForm = document.getElementById('deleteForm');
 
         function prepareDelete(id) {
-            // Genera la URL de cancelación basada en el ID de la cita
             deleteForm.action = '/appointments/cancel/' + id;
             deleteModal.show();
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Lógica para que no se puedan seleccionar fechas pasadas en los inputs
             const today = new Date().toISOString().split('T')[0];
             const datePickers = document.querySelectorAll('.date-picker-limit');
             datePickers.forEach(picker => {

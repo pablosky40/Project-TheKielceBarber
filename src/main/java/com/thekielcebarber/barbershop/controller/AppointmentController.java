@@ -157,17 +157,14 @@ public class AppointmentController {
         return "redirect:/appointments/admin";
     }
 
-    // 7. CANCELAR (Redirige según el source)
     @PostMapping("/cancel/{id}")
-    public String cancelAppointment(@PathVariable Long id, 
-                                    @RequestParam(value = "source", required = false) String source) {
+    public String cancelAppointment(@PathVariable Long id, @RequestParam(value = "source", required = false) String source) {
         appointmentRepository.deleteById(id);
-        if ("admin".equals(source)) {
-            return "redirect:/appointments/admin";
-        }
+        if ("admin-dashboard".equals(source)) return "redirect:/dashboard-admin";
+        if ("admin-schedule".equals(source)) return "redirect:/appointments/admin";
         return "redirect:/appointments/my-appointments";
     }
-
+    
     @GetMapping("/checkout")
     public String showCheckout(@RequestParam("id") Long appointmentId, Model model, Principal principal) {
         Appointment appt = appointmentRepository.findById(appointmentId)
