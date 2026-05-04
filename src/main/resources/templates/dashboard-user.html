@@ -32,10 +32,26 @@
         .table thead th { color: var(--gold) !important; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
         .table tbody td { color: #ffffff !important; padding: 20px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .badge-service { border: 1px solid var(--gold); color: white !important; font-weight: 600; padding: 8px 15px; border-radius: 8px; display: inline-block; text-transform: uppercase; font-size: 0.75rem; }
+        
+        .btn-pay-gold { 
+            background: var(--gold); color: black !important; font-weight: 800; 
+            border-radius: 50px; border: none; padding: 5px 20px; font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        .btn-pay-gold:hover { background: white; transform: scale(1.1); }
+
         .address-link { color: #ffffff; text-decoration: none; transition: 0.3s; font-weight: 700; }
         .address-link:hover { color: var(--gold); text-decoration: underline; }
         .map-section { border-radius: 25px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2); background: var(--glass); }
         .info-box { background: rgba(0, 0, 0, 0.6); padding: 40px; }
+
+        /* Estilos para el Modal de Confirmación */
+        .modal-content {
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid var(--gold);
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+        }
     </style>
 </head>
 <body>
@@ -45,7 +61,7 @@
                 <img th:src="@{/images/barber-logo.jpg}" alt="Logo" class="nav-logo me-3"> THE KIELCE BARBER
             </a>
             <form th:action="@{/logout}" method="post">
-                <button class="btn btn-logout border-0 bg-transparent text-white-50 fw-bold"><i class="bi bi-box-arrow-right me-2"></i>LOGOUT</button>
+                <button class="btn border-0 bg-transparent text-white-50 fw-bold"><i class="bi bi-box-arrow-right me-2"></i>LOGOUT</button>
             </form>
         </div>
     </nav>
@@ -77,7 +93,7 @@
                             <th>Date & Time</th>
                             <th>Master Barber</th>
                             <th>Service Type</th>
-                            <th class="text-center">Action</th>
+                            <th class="text-center">Action / Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,9 +108,22 @@
                                 <div class="small text-white-50 mt-1" th:text="${appt.price} + '€'">Price</div>
                             </td>
                             <td class="text-center">
-                                <form th:action="@{/appointments/cancel/{id}(id=${appt.id})}" method="post">
-                                    <button class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-bold" style="border-width: 2px;">CANCEL</button>
-                                </form>
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <div th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="small text-gold fw-bold">
+                                        <i class="bi bi-patch-check-fill"></i> PAID ONLINE
+                                    </div>
+                                    <div th:if="${appt.paymentStatus == 'PAID_OFFLINE'}" class="small text-white-50 fw-bold">
+                                        <i class="bi bi-shop"></i> PAY AT SHOP
+                                    </div>
+                                    <a th:if="${appt.paymentStatus == 'PENDING'}" 
+                                       th:href="@{/appointments/checkout(id=${appt.id})}" 
+                                       class="btn-pay-gold text-decoration-none">PAY NOW</a>
+                                    
+                                    <!-- Botón de cancelación que activa el Modal -->
+                                    <button type="button" class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-bold" 
+                                            style="border-width: 2px; font-size: 0.7rem;"
+                                            th:onclick="'prepareDelete(' + ${appt.id} + ')'">CANCEL</button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -110,8 +139,7 @@
                         <label class="text-white-50 small fw-bold text-uppercase">Address</label>
                         <p class="mb-0">
                             <a href="https://www.google.com/maps/search/?api=1&query=Galeria+Korona+Kielce" target="_blank" class="address-link">
-                                Warszawska 26, Galeria Korona<br>
-                                25-368 Kielce, Poland
+                                Warszawska 26, Galeria Korona<br>25-368 Kielce, Poland
                             </a>
                         </p>
                     </div>
@@ -121,27 +149,44 @@
                     </div>
                     <div>
                         <label class="text-white-50 small fw-bold text-uppercase">Hours</label>
-                        <p class="mb-1 small">Mon - Sat: 11:00-14:00  
-                                                         16:00-21:00</p>
-                        
+                        <p class="mb-1 small">Mon - Sat: 11:00-14:00 | 16:00-21:00</p>
                     </div>
                 </div>
                 <div class="col-lg-8" style="min-height: 400px; background: #222;">
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        style="border:0; min-height: 400px;" 
-                        loading="lazy" 
-                        allowfullscreen 
-                        referrerpolicy="no-referrer-when-downgrade"
-                        src="https://www.google.com/maps/embed/v1/place?key=TU_API_KEY_AQUI&q=Galeria+Korona+Kielce">
-                    </iframe>
-                    <script>
-                        document.querySelector('iframe').src = "https://maps.google.com/maps?q=Galeria%20Korona%20Kielce&t=&z=15&ie=UTF8&iwloc=&output=embed";
-                    </script>
+                    <iframe width="100%" height="100%" style="border:0; min-height: 400px;" loading="lazy" allowfullscreen 
+                            src="https://maps.google.com/maps?q=Galeria%20Korona%20Kielce&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- MODAL DE CONFIRMACIÓN ELEGANTE -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-5">
+                    <i class="bi bi-exclamation-triangle text-gold mb-4" style="font-size: 3.5rem;"></i>
+                    <h3 class="fw-bold text-white mb-3">CONFIRM CANCELLATION</h3>
+                    <p class="text-white-50 mb-4">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button type="button" class="btn btn-outline-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">BACK</button>
+                        <form id="confirmDeleteForm" method="post">
+                            <button type="submit" class="btn btn-danger px-4 rounded-pill fw-bold">YES, CANCEL</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function prepareDelete(id) {
+            const form = document.getElementById('confirmDeleteForm');
+            form.action = '/appointments/cancel/' + id;
+            const myModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            myModal.show();
+        }
+    </script>
 </body>
 </html>

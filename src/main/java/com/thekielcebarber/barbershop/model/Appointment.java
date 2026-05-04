@@ -16,6 +16,7 @@ public class Appointment {
     private LocalDate date;
 
     private String time;
+    
 
     // RELACIÓN CON SERVICIO (Según tu diagrama service_id -> Service.id)
     @ManyToOne
@@ -28,7 +29,8 @@ public class Appointment {
     // (por si el servicio sube de precio en el futuro, que la cita no cambie)
     private Double price; 
     
-    private String paymentStatus = "PENDING";
+    private String paymentStatus; // "PENDING", "PAID_ONLINE", "PAID_OFFLINE"
+    private String stripePaymentId; // Para guardar el código de Stripe
 
     // RELACIÓN CON USUARIO (user_id -> User.id)
     @ManyToOne

@@ -18,16 +18,9 @@
             border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 15px; padding: 20px; 
             cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.03);
         }
-        .payment-option:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .payment-option.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .payment-option:hover { border-color: var(--gold); }
         
-        .form-label-gold { color: var(--gold); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .form-control { background: rgba(0,0,0,0.5) !important; border: 1px solid rgba(212,175,55,0.3) !important; color: white !important; border-radius: 10px; padding: 12px 15px; }
-        .form-control:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
-        
-        /* Ajuste para que el icono del calendario sea dorado y elegante */
-        .input-group-text { background: rgba(0,0,0,0.5) !important; border: 1px solid rgba(212,175,55,0.3) !important; border-left: none !important; color: var(--gold); border-radius: 0 10px 10px 0; }
-        .date-input { border-right: none !important; border-radius: 10px 0 0 10px !important; }
-
         .btn-pay { background: var(--gold); color: black; font-weight: 800; border-radius: 50px; border: none; padding: 15px; width: 100%; transition: 0.3s; margin-top: 20px; }
         .btn-pay:hover { background: white; transform: scale(1.02); }
         
@@ -37,6 +30,7 @@
         }
         .btn-back:hover { color: white; transform: translateX(-5px); }
         .form-check-input:checked { background-color: var(--gold); border-color: var(--gold); }
+        .text-gold { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -53,107 +47,111 @@
                     <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px dotted rgba(212,175,55,0.3);">
                         <p class="mb-1 small"><i class="bi bi-scissors text-gold me-2"></i> <span th:text="${appointment.service.name}">Service</span></p>
                         <p class="mb-1 small"><i class="bi bi-calendar-event text-gold me-2"></i> <span th:text="${appointment.date}">Date</span> at <span th:text="${appointment.time}">Time</span></p>
-                        <p class="mb-0 fw-bold fs-4 text-gold text-center mt-2">$<span th:text="${appointment.price}">0.0</span></p>
+                        <p class="mb-0 fw-bold fs-4 text-gold text-center mt-2" th:text="${appointment.price} + '€'">0.0€</p>
                     </div>
 
-                    <form th:action="@{/appointments/process-payment}" method="post" id="paymentForm">
-                        <input type="hidden" name="appointmentId" th:value="${appointment.id}">
-                        
-                        <h6 class="text-gold mb-3 small fw-bold text-uppercase">Payment Method</h6>
-                        
-                        <div class="payment-option mb-3" onclick="selectPayment('online', this)">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-credit-card-2-front me-2"></i> Online Payment (Card)</span>
-                                <input class="form-check-input" type="radio" name="paymentMethod" value="ONLINE" id="radioOnline" required checked>
-                            </div>
+                    <!-- OPCIÓN 1: PAGO ONLINE (STRIPE) -->
+                    <h6 class="text-gold mb-3 small fw-bold text-uppercase">Payment Method</h6>
+                    
+                    <div id="optionOnline" class="payment-option mb-3 active" onclick="selectPayment('online')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-credit-card-2-front me-2"></i> Online Payment (Credit Card)</span>
+                            <i class="bi bi-check-circle-fill text-gold" id="iconOnline"></i>
                         </div>
+                    </div>
 
-                        <div class="payment-option mb-4" onclick="selectPayment('offline', this)">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-cash-stack me-2"></i> Pay at the Barbershop</span>
-                                <input class="form-check-input" type="radio" name="paymentMethod" value="OFFLINE" id="radioOffline">
-                            </div>
+                    <!-- OPCIÓN 2: PAGO OFFLINE -->
+                    <div id="optionOffline" class="payment-option mb-4" onclick="selectPayment('offline')">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-cash-stack me-2"></i> Pay at the Barbershop</span>
+                            <i class="bi bi-circle text-muted" id="iconOffline"></i>
                         </div>
+                    </div>
 
-                        <div id="cardSection" class="mb-4">
-                            <div class="mb-3">
-                                <label class="form-label-gold">Cardholder Name</label>
-                                <input type="text" name="cardHolderName" class="form-control" placeholder="Full Name" required 
-                                       oninvalid="this.setCustomValidity('Please enter the cardholder name')" oninput="this.setCustomValidity('')">
-                            </div>
+                    <!-- BOTÓN DINÁMICO -->
+                    <div id="stripeButtonContainer">
+                        <button type="button" class="btn btn-pay" th:onclick="'initiateStripe(' + ${appointment.id} + ')'">
+                            <i class="bi bi-shield-lock-fill me-2"></i> PAY SECURELY WITH STRIPE
+                        </button>
+                    </div>
 
-                            <div class="mb-3">
-                                <label class="form-label-gold">Card Number</label>
-                                <input type="text" name="cardNumber" class="form-control" 
-                                       placeholder="16 digits" pattern="\d{16}" maxlength="16"
-                                       oninput="this.value = this.value.replace(/[^0-9]/g, ''); this.setCustomValidity('')"
-                                       oninvalid="this.setCustomValidity('Please enter a valid 16-digit card number')" required>
-                            </div>
-
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label-gold">Expiry Date</label>
-                                    <div class="input-group">
-                                        <input type="text" id="expiryDisplay" class="form-control date-input" 
-                                               placeholder="MM / YY" readonly required
-                                               oninvalid="this.setCustomValidity('Please select expiry date')"
-                                               onclick="document.getElementById('hiddenMonth').showPicker()">
-                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                                    </div>
-                                    <input type="month" id="hiddenMonth" name="expiryDate" 
-                                           style="position: absolute; opacity: 0; pointer-events: none;"
-                                           onchange="updateExpiryDisplay(this.value)">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label-gold">CVC</label>
-                                    <input type="text" name="cvc" class="form-control" 
-                                           placeholder="3 digits" maxlength="3"
-                                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); this.setCustomValidity('')"
-                                           oninvalid="this.setCustomValidity('Please enter the 3-digit security code')" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-pay">CONFIRM APPOINTMENT</button>
+                    <form th:action="@{/appointments/pay-offline}" method="post" id="offlineForm" style="display: none;">
+                        <input type="hidden" name="id" th:value="${appointment.id}">
+                        <button type="submit" class="btn btn-pay" style="background: white; color: black;">
+                            CONFIRM & PAY IN SHOP
+                        </button>
                     </form>
+
+                    <p class="text-center mt-4 small text-muted">
+                        <i class="bi bi-lock-fill"></i> Your payment is processed securely.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        function updateExpiryDisplay(val) {
-            if(!val) return;
-            const [year, month] = val.split('-');
-            // Formateamos para que se vea MM / YY
-            document.getElementById('expiryDisplay').value = `${month} / ${year.substring(2)}`;
-            document.getElementById('expiryDisplay').setCustomValidity('');
-        }
+    <!-- SCRIPTS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script th:inline="javascript">
+        // Cambiamos entre Stripe y Offline visualmente
+        let currentMethod = 'online';
 
-        function selectPayment(type, element) {
-            const cardSection = document.getElementById('cardSection');
-            const cardInputs = cardSection.querySelectorAll('input:not(#hiddenMonth)');
+        function selectPayment(type) {
+            currentMethod = type;
+            const stripeBtn = document.getElementById('stripeButtonContainer');
+            const offlineForm = document.getElementById('offlineForm');
             
+            // Iconos y clases
+            const iconOn = document.getElementById('iconOnline');
+            const iconOff = document.getElementById('iconOffline');
+            const optOn = document.getElementById('optionOnline');
+            const optOff = document.getElementById('optionOffline');
+
             if(type === 'online') {
-                cardSection.style.display = 'block';
-                document.getElementById('radioOnline').checked = true;
-                cardInputs.forEach(input => input.required = true);
+                stripeBtn.style.display = 'block';
+                offlineForm.style.display = 'none';
+                optOn.classList.add('active');
+                optOff.classList.remove('active');
+                iconOn.className = "bi bi-check-circle-fill text-gold";
+                iconOff.className = "bi bi-circle text-muted";
             } else {
-                cardSection.style.display = 'none';
-                document.getElementById('radioOffline').checked = true;
-                cardInputs.forEach(input => {
-                    input.required = false;
-                    input.setCustomValidity('');
-                });
+                stripeBtn.style.display = 'none';
+                offlineForm.style.display = 'block';
+                optOn.classList.remove('active');
+                optOff.classList.add('active');
+                iconOn.className = "bi bi-circle text-muted";
+                iconOff.className = "bi bi-check-circle-fill text-gold";
             }
         }
 
-        window.onload = function() {
-            const hiddenMonth = document.getElementById('hiddenMonth');
-            const now = new Date();
-            hiddenMonth.min = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            selectPayment('online');
-        };
+        // FUNCIÓN STRIPE REAL
+        const stripe = Stripe(/*[[${@environment.getProperty('stripe.public.key')}]]*/ 'tu_pk_test_aqui');
+
+        function initiateStripe(appointmentId) {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Redirecting...';
+
+            fetch('/payment/create-checkout-session?appointmentId=' + appointmentId, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(session => {
+                if(session.id) {
+                    stripe.redirectToCheckout({ sessionId: session.id });
+                } else {
+                    alert("Stripe Error: " + session.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(err => {
+                alert("Connection error");
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
     </script>
 </body>
 </html>

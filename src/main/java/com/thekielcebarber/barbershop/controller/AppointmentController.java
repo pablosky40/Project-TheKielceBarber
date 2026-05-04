@@ -33,11 +33,10 @@ public class AppointmentController {
     @Autowired
     private ServiceRepository serviceRepository;
 
-    // 1. PANEL DE GESTIÓN DE CITAS (Donde estás ahora)
+    // 1. PANEL DE GESTIÓN DE CITAS (Admin)
     @GetMapping("/admin") 
     public String showAdminDashboard(Model model, Principal principal) {
         List<Appointment> allApps = appointmentRepository.findAll();
-        // Cargamos todas para que el admin vea bloqueos y citas de clientes
         model.addAttribute("appointments", allApps);
         model.addAttribute("appointmentCount", allApps.stream().filter(a -> a.getUser() != null).count());
         
@@ -85,7 +84,7 @@ public class AppointmentController {
                 .collect(Collectors.toList());
     }
 
-    // 4. GUARDAR CITA
+    // 4. GUARDAR CITA (Ahora redirige al checkout real)
     @PostMapping("/create")
     public String createAppointment(
             @RequestParam Long serviceId,
@@ -108,6 +107,7 @@ public class AppointmentController {
         appt.setPaymentStatus("PENDING");
         
         appointmentRepository.save(appt);
+        // Redirigimos a la vista de checkout con el ID de la cita recién creada
         return "redirect:/appointments/checkout?id=" + appt.getId();
     }
 
@@ -123,7 +123,7 @@ public class AppointmentController {
         return "dashboard-user";
     }
 
-    // 6. BLOQUEOS ADMIN (Redirigen a /appointments/admin)
+    // 6. BLOQUEOS ADMIN
     @PostMapping("/admin/block")
     public String blockSchedule(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, 
                                 @RequestParam String time) {
@@ -142,21 +142,7 @@ public class AppointmentController {
         return "redirect:/appointments/admin";
     }
 
-    @PostMapping("/admin/block-day")
-    public String blockFullDay(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        if (date.isBefore(LocalDate.now())) {
-            return "redirect:/appointments/admin?error=past_date";
-        }
-
-        Appointment block = new Appointment();
-        block.setDate(date);
-        block.setTime("FULL DAY");
-        block.setPaymentStatus("BLOCKED");
-        block.setBarber("The Kielce Barber");
-        appointmentRepository.save(block);
-        return "redirect:/appointments/admin";
-    }
-
+    // 7. CANCELAR CITA
     @PostMapping("/cancel/{id}")
     public String cancelAppointment(@PathVariable Long id, @RequestParam(value = "source", required = false) String source) {
         appointmentRepository.deleteById(id);
@@ -165,6 +151,7 @@ public class AppointmentController {
         return "redirect:/appointments/my-appointments";
     }
     
+    // 8. VISTA DE CHECKOUT (Muestra los dos botones de pago)
     @GetMapping("/checkout")
     public String showCheckout(@RequestParam("id") Long appointmentId, Model model, Principal principal) {
         Appointment appt = appointmentRepository.findById(appointmentId)
@@ -174,22 +161,20 @@ public class AppointmentController {
         return "checkout";
     }
 
-    @PostMapping("/process-payment")
-    public String processPayment(@RequestParam Long appointmentId, 
-                                 @RequestParam String paymentMethod,
-                                 @RequestParam(required = false) String cardNumber) {
-        Appointment appt = appointmentRepository.findById(appointmentId).get();
-        if ("ONLINE".equals(paymentMethod)) {
-            if (cardNumber != null && cardNumber.contains("0000")) {
-                return "redirect:/appointments/checkout?id=" + appointmentId + "&error=payment_failed";
-            }
-            appt.setPaymentStatus("PAID_ONLINE");
-        } else {
-            appt.setPaymentStatus("PENDING_LOCAL"); 
-        }
+    // 9. PAGO OFFLINE (EL BOTÓN DE PÁNICO)
+    // Este método lo usas si la pasarela externa falla o el cliente paga en el local.
+    @PostMapping("/pay-offline")
+    public String payOffline(@RequestParam Long id) {
+        Appointment appt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+        
+        appt.setPaymentStatus("PAID_OFFLINE"); // Marcamos como pagado localmente
         appointmentRepository.save(appt);
-        return "redirect:/appointments/my-appointments?success";
+        
+        return "redirect:/appointments/my-appointments?success_offline";
     }
+
+    // --- MÉTODOS DE APOYO ---
 
     private User getOrCreateUser(String emailOrId, Principal principal) {
         String email = emailOrId;
@@ -211,6 +196,16 @@ public class AppointmentController {
             return userRepository.save(newUser);
         });
     }
+    @GetMapping("/payment-success")
+public String paymentSuccess(@RequestParam("id") Long id) {
+    Appointment appt = appointmentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+    
+    appt.setPaymentStatus("PAID_ONLINE"); // Actualizamos el estado a pagado
+    appointmentRepository.save(appt); // Guardamos en MySQL
+    
+    return "redirect:/appointments/my-appointments?success";
+}
 
     private void loadGoogleData(Model model, Principal principal) {
         if (principal instanceof OAuth2AuthenticationToken token) {
