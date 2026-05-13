@@ -41,7 +41,7 @@ public class StripeController {
                     .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
 
             // 2. Calculamos el precio en céntimos (Stripe usa céntimos)
-            // Ejemplo: 15.00€ -> 1500 céntimos
+            // Ejemplo: 15.00€ - 1500 céntimos
             long priceInCents = (long) (appt.getPrice() * 100);
 
             // 3. Configuramos la sesión con datos dinámicos
@@ -55,7 +55,7 @@ public class StripeController {
                     .setQuantity(1L)
                     .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                         .setCurrency("eur")
-                        .setUnitAmount(priceInCents) // <--- PRECIO DINÁMICO
+                        .setUnitAmount(priceInCents) //  PRECIO DINÁMICO
                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                             .setName(appt.getService().getName() + " - The Kielce Barber") // Nombre real del servicio
                             .build())

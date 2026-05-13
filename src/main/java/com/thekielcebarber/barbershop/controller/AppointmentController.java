@@ -6,6 +6,7 @@ import com.thekielcebarber.barbershop.model.User;
 import com.thekielcebarber.barbershop.repository.AppointmentRepository;
 import com.thekielcebarber.barbershop.repository.ServiceRepository;
 import com.thekielcebarber.barbershop.repository.UserRepository;
+import com.thekielcebarber.barbershop.service.MessageProducer; // Importación necesaria
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -24,14 +25,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/appointments")
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentRepository appointmentRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ServiceRepository serviceRepository;
+    @Autowired private AppointmentRepository appointmentRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ServiceRepository serviceRepository;
+    
+    @Autowired 
+    private MessageProducer messageProducer; // Inyección del productor de RabbitMQ
 
     // 1. PANEL DE GESTIÓN DE CITAS (Admin)
     @GetMapping("/admin") 
@@ -39,7 +38,6 @@ public class AppointmentController {
         List<Appointment> allApps = appointmentRepository.findAll();
         model.addAttribute("appointments", allApps);
         model.addAttribute("appointmentCount", allApps.stream().filter(a -> a.getUser() != null).count());
-        
         loadGoogleData(model, principal);
         return "admin-appointments"; 
     }
@@ -68,7 +66,9 @@ public class AppointmentController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam Long barberId) {
 
-        User barber = userRepository.findById(barberId).get();
+        User barber = userRepository.findById(barberId)
+                .orElseThrow(() -> new RuntimeException("Barber not found"));
+
         List<Appointment> dayEvents = appointmentRepository.findAll().stream()
                 .filter(appt -> appt.getDate().equals(date))
                 .collect(Collectors.toList());
@@ -84,7 +84,7 @@ public class AppointmentController {
                 .collect(Collectors.toList());
     }
 
-    // 4. GUARDAR CITA (Ahora redirige al checkout real)
+    // 4. GUARDAR CITA (Redirige al checkout)
     @PostMapping("/create")
     public String createAppointment(
             @RequestParam Long serviceId,
@@ -93,8 +93,10 @@ public class AppointmentController {
             @RequestParam String time,
             Principal principal) {
         
-        Service service = serviceRepository.findById(serviceId).get();
-        User barber = userRepository.findById(barberId).get();
+        Service service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("Service not found"));
+        User barber = userRepository.findById(barberId)
+                .orElseThrow(() -> new RuntimeException("Barber not found"));
         User customer = getOrCreateUser(principal.getName(), principal);
 
         Appointment appt = new Appointment();
@@ -107,7 +109,10 @@ public class AppointmentController {
         appt.setPaymentStatus("PENDING");
         
         appointmentRepository.save(appt);
-        // Redirigimos a la vista de checkout con el ID de la cita recién creada
+
+        // ENVIAR A RABBITMQ: Notificar que la reserva se ha creado (Pendiente de pago)
+        messageProducer.sendAppointmentNotification(customer.getEmail() + "|Tu reserva ha sido creada. Estado: PENDIENTE DE PAGO. Día: " + date + " a las " + time);
+
         return "redirect:/appointments/checkout?id=" + appt.getId();
     }
 
@@ -123,7 +128,7 @@ public class AppointmentController {
         return "dashboard-user";
     }
 
-    // 6. BLOQUEOS ADMIN
+    // 6. BLOQUEOS ADMIN (HORA SUELTA)
     @PostMapping("/admin/block")
     public String blockSchedule(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, 
                                 @RequestParam String time) {
@@ -142,6 +147,24 @@ public class AppointmentController {
         return "redirect:/appointments/admin";
     }
 
+    // 6.2 BLOQUEO DE DÍA COMPLETO
+    @PostMapping("/admin/block-day")
+    public String blockFullDay(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        if (date.isBefore(LocalDate.now())) {
+            return "redirect:/appointments/admin?error=past_date";
+        }
+
+        Appointment blockDay = new Appointment();
+        blockDay.setDate(date);
+        blockDay.setTime("FULL DAY");
+        serviceRepository.findByName("BLOQUEO").ifPresent(blockDay::setService);
+        blockDay.setBarber("The Kielce Barber");
+        blockDay.setPrice(0.0);
+        blockDay.setPaymentStatus("BLOCKED");
+        appointmentRepository.save(blockDay);
+        return "redirect:/appointments/admin?success_blocked_day";
+    }
+
     // 7. CANCELAR CITA
     @PostMapping("/cancel/{id}")
     public String cancelAppointment(@PathVariable Long id, @RequestParam(value = "source", required = false) String source) {
@@ -151,7 +174,7 @@ public class AppointmentController {
         return "redirect:/appointments/my-appointments";
     }
     
-    // 8. VISTA DE CHECKOUT (Muestra los dos botones de pago)
+    // 8. VISTA DE CHECKOUT
     @GetMapping("/checkout")
     public String showCheckout(@RequestParam("id") Long appointmentId, Model model, Principal principal) {
         Appointment appt = appointmentRepository.findById(appointmentId)
@@ -161,54 +184,63 @@ public class AppointmentController {
         return "checkout";
     }
 
-    // 9. PAGO OFFLINE (EL BOTÓN DE PÁNICO)
-    // Este método lo usas si la pasarela externa falla o el cliente paga en el local.
+    // 9. PAGO OFFLINE
     @PostMapping("/pay-offline")
     public String payOffline(@RequestParam Long id) {
         Appointment appt = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         
-        appt.setPaymentStatus("PAID_OFFLINE"); // Marcamos como pagado localmente
+        appt.setPaymentStatus("PAID_OFFLINE");
         appointmentRepository.save(appt);
+
+        // ENVIAR A RABBITMQ: Notificar confirmación de pago en tienda
+        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|Confirmado: Pago en tienda seleccionado para tu cita el " + appt.getDate());
         
         return "redirect:/appointments/my-appointments?success_offline";
+    }
+
+    // 10. ÉXITO PAGO ONLINE
+    @GetMapping("/payment-success")
+    public String paymentSuccess(@RequestParam("id") Long id) {
+        Appointment appt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment does not exist"));
+        
+        appt.setPaymentStatus("PAID_ONLINE");
+        appointmentRepository.save(appt);
+
+        // ENVIAR A RABBITMQ: Notificar confirmación de pago online con Stripe
+        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|¡Pago Recibido! Tu cita el día " + appt.getDate() + " ha sido confirmada online.");
+        
+        return "redirect:/appointments/my-appointments?success";
     }
 
     // --- MÉTODOS DE APOYO ---
 
     private User getOrCreateUser(String emailOrId, Principal principal) {
         String email = emailOrId;
+        String name = emailOrId.split("@")[0];
+
         if (principal instanceof OAuth2AuthenticationToken token) {
             email = token.getPrincipal().getAttribute("email");
+            name = token.getPrincipal().getAttribute("name");
         }
-        final String finalEmail = email;
+
+        final String finalEmail = (email != null) ? email.toLowerCase().trim() : "";
+        final String finalName = name;
+
         return userRepository.findByEmail(finalEmail).orElseGet(() -> {
             User newUser = new User();
             newUser.setEmail(finalEmail);
-            if (principal instanceof OAuth2AuthenticationToken token) {
-                String googleName = token.getPrincipal().getAttribute("name");
-                newUser.setName(googleName != null ? googleName : finalEmail.split("@")[0]);
-            } else {
-                newUser.setName(finalEmail.split("@")[0]);
-            }
+            newUser.setName(finalName != null ? finalName : finalEmail.split("@")[0]);
             newUser.setRole("USER");
             newUser.setPassword("oauth2_user");
             return userRepository.save(newUser);
         });
     }
-    @GetMapping("/payment-success")
-public String paymentSuccess(@RequestParam("id") Long id) {
-    Appointment appt = appointmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
-    
-    appt.setPaymentStatus("PAID_ONLINE"); // Actualizamos el estado a pagado
-    appointmentRepository.save(appt); // Guardamos en MySQL
-    
-    return "redirect:/appointments/my-appointments?success";
-}
 
     private void loadGoogleData(Model model, Principal principal) {
-        if (principal instanceof OAuth2AuthenticationToken token) {
+        if (principal instanceof OAuth2AuthenticationToken) {
+            OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) principal;
             model.addAttribute("userPhoto", token.getPrincipal().getAttribute("picture"));
             model.addAttribute("userName", token.getPrincipal().getAttribute("name"));
         }

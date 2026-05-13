@@ -57,6 +57,7 @@
             font-weight: 800; padding: 5px 12px; border-radius: 6px; font-size: 0.7rem; text-transform: uppercase; 
         }
 
+        /* Estilos de los Badges Actualizados */
         .status-badge {
             font-size: 0.65rem;
             font-weight: 800;
@@ -65,9 +66,11 @@
             text-transform: uppercase;
             display: inline-flex;
             align-items: center;
+            gap: 5px;
         }
         .status-paid { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
-        .status-local { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .status-local { background: rgba(212, 175, 55, 0.2); color: var(--gold); border: 1px solid var(--gold); }
+        .status-pending { background: rgba(255, 255, 255, 0.1); color: #aaa; border: 1px solid #555; }
 
         .btn-delete-pro {
             background-color: transparent; border: 2px solid var(--red); color: var(--red);
@@ -115,7 +118,7 @@
                             <option value="11:00">11:00 </option><option value="12:00">12:00 </option>
                             <option value="13:00">13:00 </option><option value="16:00">16:00 </option>
                             <option value="17:00">17:00 </option><option value="18:00">18:00 </option>
-                            <option value="19:00">19:00 </option><option value="18:00">20:00 </option>
+                            <option value="19:00">19:00 </option><option value="20:00">20:00 </option>
                         </select>
                         <button type="submit" class="btn btn-gold w-100 py-2">BLOCK HOUR</button>
                     </form>
@@ -167,14 +170,15 @@
                                     </td>
                                     <td class="text-center">
                                         <div th:unless="${appt.paymentStatus == 'BLOCKED'}">
+                                            <!-- MOSTRAR BADGE SEGÚN ESTADO REAL -->
                                             <span th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="status-badge status-paid">
-                                                <i class="bi bi-credit-card-fill me-1"></i> PAID ONLINE
+                                                <i class="bi bi-patch-check-fill"></i> PAID ONLINE
                                             </span>
-                                            <span th:if="${appt.paymentStatus == 'PENDING_LOCAL'}" class="status-badge status-local">
-                                                <i class="bi bi-cash-stack me-1"></i> PAY AT SHOP
+                                            <span th:if="${appt.paymentStatus == 'PAID_OFFLINE'}" class="status-badge status-local">
+                                                <i class="bi bi-shop"></i> AT SHOP
                                             </span>
-                                            <span th:if="${appt.paymentStatus == 'PENDING'}" class="status-badge bg-secondary text-white">
-                                                PENDING
+                                            <span th:if="${appt.paymentStatus == 'PENDING'}" class="status-badge status-pending">
+                                                <i class="bi bi-hourglass-split"></i> PENDING
                                             </span>
                                         </div>
                                         <span th:if="${appt.paymentStatus == 'BLOCKED'}" class="text-white-50 small">-</span>
@@ -193,23 +197,20 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIRMACIÓN -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold text-gold">Confirm Action</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-content text-center p-4">
+                <div class="modal-body">
+                    <i class="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+                    <h3 class="fw-bold text-white">REMOVE ENTRY?</h3>
+                    <p class="text-white-50">This action will permanently delete the record from the database. This cannot be undone.</p>
                 </div>
-                <div class="modal-body text-center py-4">
-                    <i class="bi bi-exclamation-octagon text-danger fs-1 mb-3 d-block"></i>
-                    <p class="fs-5 text-white">Are you sure you want to delete this entry?</p>
-                    <p class="small text-white-50">This action cannot be undone.</p>
-                </div>
-                <div class="modal-footer justify-content-center border-0 pb-4">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Go Back</button>
+                <div class="d-flex gap-3 p-2">
+                    <button type="button" class="btn btn-outline-light w-100 fw-bold rounded-pill" data-bs-dismiss="modal">BACK</button>
                     <form id="deleteForm" method="post">
                         <input type="hidden" name="source" value="admin-schedule">
-                        <button type="submit" class="btn btn-danger px-4 fw-bold">Confirm & Delete</button>
+                        <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill">DELETE</button>
                     </form>
                 </div>
             </div>

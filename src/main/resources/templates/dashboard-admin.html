@@ -149,27 +149,45 @@
                     <tbody>
                         <tr th:each="appt : ${appointments}">
                             <td>
-                                <div class="fw-bold text-white" th:text="${appt.user != null ? appt.user.name : 'Guest User'}">Client Name</div>
-                                <div class="small text-white-50" th:text="${appt.user != null ? appt.user.email : 'No Email'}">email@example.com</div>
+                                <!-- LÓGICA DE IDENTIFICACIÓN: Si es BLOQUEO, mostramos THE KIELCE BARBER -->
+                                <div th:if="${appt.paymentStatus == 'BLOCKED'}">
+                                    <div class="fw-bold text-gold">
+                                        <i class="bi bi-shop me-1"></i> THE KIELCE BARBER
+                                    </div>
+                                    <div class="small text-white-50">Master Administration</div>
+                                </div>
+                                
+                                <!-- LÓGICA PARA CLIENTES REALES -->
+                                <div th:unless="${appt.paymentStatus == 'BLOCKED'}">
+                                    <div class="fw-bold text-white" th:text="${appt.user != null ? appt.user.name : 'Guest User'}">Client Name</div>
+                                    <div class="small text-white-50" th:text="${appt.user != null ? appt.user.email : 'No Email'}">email@example.com</div>
+                                </div>
                             </td>
                             <td>
                                 <div class="text-white fw-bold" th:text="${appt.date}">2026-04-18</div>
                                 <div class="text-gold small fw-bold" th:text="${appt.time}">15:30</div>
                             </td>
                             <td>
-                                <span class="badge-admin" th:text="${appt.service?.name ?: 'Standard Service'}">Haircut</span>
+                                <span th:if="${appt.paymentStatus == 'BLOCKED'}" class="badge bg-dark text-gold border border-gold" style="font-size: 0.7rem;">
+                                    SYSTEM BLOCK
+                                </span>
+                                <span th:unless="${appt.paymentStatus == 'BLOCKED'}" class="badge-admin" th:text="${appt.service?.name ?: 'Standard Service'}">
+                                    Haircut
+                                </span>
                             </td>
                             <td class="text-center">
-                                <!-- Lógica de Badges Mejorada -->
-                                <span th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="status-badge status-paid">
-                                    <i class="bi bi-patch-check-fill"></i> PAID ONLINE
-                                </span>
-                                <span th:if="${appt.paymentStatus == 'PAID_OFFLINE'}" class="status-badge status-local">
-                                    <i class="bi bi-shop"></i> AT SHOP
-                                </span>
-                                <span th:if="${appt.paymentStatus == 'PENDING'}" class="status-badge status-pending">
-                                    <i class="bi bi-hourglass-split"></i> PENDING
-                                </span>
+                                <div th:unless="${appt.paymentStatus == 'BLOCKED'}">
+                                    <span th:if="${appt.paymentStatus == 'PAID_ONLINE'}" class="status-badge status-paid">
+                                        <i class="bi bi-patch-check-fill"></i> PAID ONLINE
+                                    </span>
+                                    <span th:if="${appt.paymentStatus == 'PAID_OFFLINE'}" class="status-badge status-local">
+                                        <i class="bi bi-shop"></i> AT SHOP
+                                    </span>
+                                    <span th:if="${appt.paymentStatus == 'PENDING'}" class="status-badge status-pending">
+                                        <i class="bi bi-hourglass-split"></i> PENDING
+                                    </span>
+                                </div>
+                                <span th:if="${appt.paymentStatus == 'BLOCKED'}" class="text-white-50 small">-</span>
                             </td>
                             <td class="text-end">
                                 <button class="btn btn-outline-danger btn-sm btn-app-delete px-3" th:onclick="'openDeleteModal(' + ${appt.id} + ')'">

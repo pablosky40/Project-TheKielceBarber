@@ -11,16 +11,16 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    // Para ver las citas de un cliente específico en su dashboard
+    // Método seguro: Busca las citas usando el objeto Usuario completo
+    // Esto evita el error "No property 'email' found for type 'User'"
     List<Appointment> findByUser(User user);
 
-    // CRÍTICO: Para el calendario visual (Check availability por barbero)
-    // Este método permite al controlador buscar qué horas tiene ocupadas un barbero concreto
+    // Para el calendario: busca citas por fecha y barbero específico
     List<Appointment> findByDateAndBarber(LocalDate date, String barber);
 
-    // Para evitar que dos personas reserven lo mismo al mismo tiempo (Validación de seguridad)
+    // Validación: evita duplicados (mismo barbero, misma hora, mismo día)
     boolean existsByBarberAndDateAndTime(String barber, LocalDate date, String time);
     
-    // Para buscar bloqueos globales (cuando el barbero es "The Kielce Barber" o similar)
+    // Para buscar bloqueos globales o estados específicos
     List<Appointment> findByDateAndPaymentStatus(LocalDate date, String paymentStatus);
 }
