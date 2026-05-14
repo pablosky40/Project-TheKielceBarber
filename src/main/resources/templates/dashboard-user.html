@@ -27,6 +27,32 @@
             display: block; transition: 0.4s; color: white; backdrop-filter: blur(5px);
         }
         .card-option:hover { border-color: var(--gold); transform: translateY(-8px); background: rgba(212,175,55,0.05); }
+        
+        /* ESTILOS GALERÍA RETOCADOS */
+        .gallery-card {
+            position: relative; border-radius: 20px; overflow: hidden;
+            border: 1px solid rgba(212,175,55,0.2); 
+            height: 280px; /* Altura aumentada para mostrar más imagen */
+            transition: 0.4s; cursor: pointer;
+        }
+        .gallery-card img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            object-position: center 15%; /* Ajusta el encuadre para que no se corte la cabeza */
+            opacity: 0.7; 
+            transition: 0.5s; 
+        }
+        .gallery-card:hover { border-color: var(--gold); transform: scale(1.02); }
+        .gallery-card:hover img { opacity: 1; transform: scale(1.05); }
+        
+        .gallery-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            text-align: center;
+        }
+        .gallery-overlay h5 { color: var(--gold); margin: 0; font-weight: 800; font-size: 0.8rem; letter-spacing: 1px; }
+
         .appt-card { background: rgba(255, 255, 255, 0.03); border-radius: 25px; padding: 35px; border: 1px solid rgba(212,175,55,0.15); backdrop-filter: blur(15px); }
         .table { --bs-table-bg: transparent; color: white !important; border-color: rgba(255,255,255,0.1); }
         .table thead th { color: var(--gold) !important; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
@@ -45,7 +71,6 @@
         .map-section { border-radius: 25px; overflow: hidden; border: 1px solid rgba(212,175,55,0.2); background: var(--glass); }
         .info-box { background: rgba(0, 0, 0, 0.6); padding: 40px; }
 
-        /* Estilos para el Modal de Confirmación */
         .modal-content {
             background: rgba(15, 15, 15, 0.95);
             border: 1px solid var(--gold);
@@ -84,6 +109,64 @@
             <div class="col-md-4"><a th:href="@{/reviews}" class="card-option"><i class="bi bi-stars fs-1 text-gold"></i><h4 class="mt-3 fw-bold">REVIEWS</h4></a></div>
         </div>
 
+        <div class="mb-5">
+            <h3 class="mb-4 text-gold fw-bold"><i class="bi bi-camera me-2"></i>STYLE INSPIRATION</h3>
+            
+            <div class="row g-4">
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-fade.jpg}" alt="Fade">
+                        <div class="gallery-overlay"><h5>SKIN FADE</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-pompadour.jpg}" alt="Pompadour">
+                        <div class="gallery-overlay"><h5>POMPADOUR</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-beard.jpg}" alt="Beard">
+                        <div class="gallery-overlay"><h5>BEARD SCULPT</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-buzz.jpg}" alt="Buzz">
+                        <div class="gallery-overlay"><h5>BUZZ CUT</h5></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-1">
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-mullet.jpg}" alt="Mullet">
+                        <div class="gallery-overlay"><h5>MODERN MULLET</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-crop.jpg}" alt="Crop">
+                        <div class="gallery-overlay"><h5>TEXTURED CROP</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-sidepart.jpg}" alt="Side Part">
+                        <div class="gallery-overlay"><h5>CLASSIC SIDE PART</h5></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="gallery-card">
+                        <img th:src="@{/images/style-long.jpg}" alt="Long Flow">
+                        <div class="gallery-overlay"><h5>LONG FLOW</h5></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="appt-card mb-5">
             <h3 class="mb-4 text-gold fw-bold"><i class="bi bi-clock-history me-2"></i>MY APPOINTMENTS</h3>
             <div class="table-responsive">
@@ -119,7 +202,6 @@
                                        th:href="@{/appointments/checkout(id=${appt.id})}" 
                                        class="btn-pay-gold text-decoration-none">PAY NOW</a>
                                     
-                                    <!-- Botón de cancelación que activa el Modal -->
                                     <button type="button" class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-bold" 
                                             style="border-width: 2px; font-size: 0.7rem;"
                                             th:onclick="'prepareDelete(' + ${appt.id} + ')'">CANCEL</button>
@@ -138,7 +220,7 @@
                     <div class="mb-4">
                         <label class="text-white-50 small fw-bold text-uppercase">Address</label>
                         <p class="mb-0">
-                            <a href="https://www.google.com/maps/search/?api=1&query=Galeria+Korona+Kielce" target="_blank" class="address-link">
+                            <a href="https://www.google.com/maps/search/Warszawska+26,+Galeria+Korona+25-368+Kielce,+Poland" target="_blank" class="address-link">
                                 Warszawska 26, Galeria Korona<br>25-368 Kielce, Poland
                             </a>
                         </p>
@@ -147,20 +229,19 @@
                         <label class="text-white-50 small fw-bold text-uppercase">Contact</label>
                         <p class="mb-0 text-white fw-bold"><i class="bi bi-telephone text-gold me-2"></i> +48 695 381 888</p>
                     </div>
-                    <div>
+                    <div class="mb-4">
                         <label class="text-white-50 small fw-bold text-uppercase">Hours</label>
                         <p class="mb-1 small">Mon - Sat: 11:00-14:00 | 16:00-21:00</p>
                     </div>
                 </div>
                 <div class="col-lg-8" style="min-height: 400px; background: #222;">
                     <iframe width="100%" height="100%" style="border:0; min-height: 400px;" loading="lazy" allowfullscreen 
-                            src="https://maps.google.com/maps?q=Galeria%20Korona%20Kielce&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2520.155704177573!2d20.635815676941785!3d50.87455585672159!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x471827e85295c555%3A0x6b876d7560737f0c!2sGaleria%20Korona%20Kielce!5e0!3m2!1ses!2ses!4v1715712000000!5m2!1ses!2ses"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE CONFIRMACIÓN ELEGANTE -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
