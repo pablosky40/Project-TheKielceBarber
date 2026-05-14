@@ -41,29 +41,34 @@ public class StripeController {
                     .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
 
             // 2. Calculamos el precio en céntimos (Stripe usa céntimos)
-            // Ejemplo: 15.00€ - 1500 céntimos
             long priceInCents = (long) (appt.getPrice() * 100);
 
             // 3. Configuramos la sesión con datos dinámicos
             SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                // Redirige al éxito donde el AppointmentController marcará como PAID_ONLINE
+                
+                // URL DE ÉXITO: Redirige al método del AppointmentController para confirmar
                 .setSuccessUrl("http://localhost:8080/appointments/payment-success?id=" + appointmentId)
-                .setCancelUrl("http://localhost:8080/appointments/my-appointments?payment=cancel")
+                
+                // URL DE ERROR/CANCELACIÓN: Ahora apunta a nuestra nueva pantalla de fallo
+                .setCancelUrl("http://localhost:8080/appointments/payment-failed?appointmentId=" + appointmentId)
+                
                 .addLineItem(SessionCreateParams.LineItem.builder()
                     .setQuantity(1L)
                     .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                         .setCurrency("eur")
-                        .setUnitAmount(priceInCents) //  PRECIO DINÁMICO
+                        .setUnitAmount(priceInCents)
                         .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                            .setName(appt.getService().getName() + " - The Kielce Barber") // Nombre real del servicio
+                            .setName(appt.getService().getName() + " - The Kielce Barber")
                             .build())
                         .build())
                     .build())
                 .build();
 
             Session session = Session.create(params);
+            
+            // Enviamos el ID de la sesión para que el frontend haga el redirect
             response.put("id", session.getId());
             return response;
             

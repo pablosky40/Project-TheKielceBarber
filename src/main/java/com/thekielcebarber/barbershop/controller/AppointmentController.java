@@ -6,7 +6,7 @@ import com.thekielcebarber.barbershop.model.User;
 import com.thekielcebarber.barbershop.repository.AppointmentRepository;
 import com.thekielcebarber.barbershop.repository.ServiceRepository;
 import com.thekielcebarber.barbershop.repository.UserRepository;
-import com.thekielcebarber.barbershop.service.MessageProducer; // Importación necesaria
+import com.thekielcebarber.barbershop.service.MessageProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -30,7 +30,7 @@ public class AppointmentController {
     @Autowired private ServiceRepository serviceRepository;
     
     @Autowired 
-    private MessageProducer messageProducer; // Inyección del productor de RabbitMQ
+    private MessageProducer messageProducer; 
 
     // 1. PANEL DE GESTIÓN DE CITAS (Admin)
     @GetMapping("/admin") 
@@ -110,8 +110,7 @@ public class AppointmentController {
         
         appointmentRepository.save(appt);
 
-        // ENVIAR A RABBITMQ: Notificar que la reserva se ha creado (Pendiente de pago)
-        messageProducer.sendAppointmentNotification(customer.getEmail() + "|Tu reserva ha sido creada. Estado: PENDIENTE DE PAGO. Día: " + date + " a las " + time);
+        messageProducer.sendAppointmentNotification(customer.getEmail() + "|Your appointment has been created. Status: PENDING PAYMENT. Date: " + date + " at " + time);
 
         return "redirect:/appointments/checkout?id=" + appt.getId();
     }
@@ -193,8 +192,7 @@ public class AppointmentController {
         appt.setPaymentStatus("PAID_OFFLINE");
         appointmentRepository.save(appt);
 
-        // ENVIAR A RABBITMQ: Notificar confirmación de pago en tienda
-        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|Confirmado: Pago en tienda seleccionado para tu cita el " + appt.getDate());
+        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|Confirmed: Offline payment selected for your appointment on " + appt.getDate());
         
         return "redirect:/appointments/my-appointments?success_offline";
     }
@@ -208,10 +206,30 @@ public class AppointmentController {
         appt.setPaymentStatus("PAID_ONLINE");
         appointmentRepository.save(appt);
 
-        // ENVIAR A RABBITMQ: Notificar confirmación de pago online con Stripe
-        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|¡Pago Recibido! Tu cita el día " + appt.getDate() + " ha sido confirmada online.");
+        messageProducer.sendAppointmentNotification(appt.getUser().getEmail() + "|¡Payment received! Your appointment on " + appt.getDate() + " has been confirmed online.");
         
         return "redirect:/appointments/my-appointments?success";
+    }
+
+    // --- NUEVO: MANEJO DE ESCENARIOS NEGATIVOS (FALLO DE PAGO) ---
+    @GetMapping("/payment-failed")
+    public String paymentFailed(@RequestParam(required = false) Long appointmentId, Model model, Principal principal) {
+        if (appointmentId != null) {
+            Appointment appt = appointmentRepository.findById(appointmentId).orElse(null);
+            model.addAttribute("appointment", appt);
+            model.addAttribute("errorMessage", "The payment was not completed. Your appointment remains 'Pending Payment'. You can try again from your dashboard.");
+        } else {
+            model.addAttribute("errorMessage", "There was an unexpected error with the payment gateway.");
+        }
+        loadGoogleData(model, principal);
+        return "payment-failed"; // Asegúrate de crear este HTML
+    }
+    // MÉTODO PARA REINTENTAR EL PAGO DESDE LA PANTALLA DE ERROR O DASHBOARD
+    @GetMapping("/pay/{id}")
+    public String retryPayment(@PathVariable Long id) {
+        // Simplemente redirigimos al checkout que ya tienes creado
+        // para que el usuario elija otra vez si pagar online u offline
+        return "redirect:/appointments/checkout?id=" + id;
     }
 
     // --- MÉTODOS DE APOYO ---
